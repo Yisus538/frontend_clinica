@@ -1,11 +1,4 @@
-import React from "react";
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  isLoading?: boolean;
-  loadingLabel?: string;
-  variant?: "primary" | "outline" | "ghost";
-  fullWidth?: boolean;
-}
+import type { ButtonProps } from "../types/button.type";
 
 const VARIANTS = {
   primary: {
@@ -28,7 +21,7 @@ const VARIANTS = {
   },
 };
 
-export const Button: React.FC<ButtonProps> = ({
+export const Button = ({
   children,
   isLoading = false,
   loadingLabel = "Cargando...",
@@ -37,7 +30,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   className = "",
   ...props
-}) => {
+}: ButtonProps) => {
   const v = VARIANTS[variant];
 
   return (

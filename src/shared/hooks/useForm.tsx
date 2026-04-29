@@ -24,7 +24,6 @@ export function useForm<T extends Record<string, unknown>>({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    // Limpia el error del campo al modificarlo
     if (errors[name as keyof T]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }

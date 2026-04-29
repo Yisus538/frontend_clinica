@@ -1,13 +1,6 @@
-import React from "react";
+import type { InputProps } from "../types/input.type";
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
-  rightSlot?: React.ReactNode;
-  leftSlot?: React.ReactNode;
-}
-
-export const Input: React.FC<InputProps> = ({
+export const Input= ({
   label,
   error,
   rightSlot,
@@ -15,7 +8,7 @@ export const Input: React.FC<InputProps> = ({
   id,
   className = "",
   ...props
-}) => {
+}: InputProps) => {
   return (
     <div className="flex flex-col gap-1 w-full max-w-sm">
       {label && (
