@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { CalendarHeader } from "../features/agenda/components/CalendarHeader";
 import { CalendarGrid } from "../features/agenda/components/CalendarGrid";
+import { CalendarMonthGrid } from "../features/agenda/components/CalendarMonthGrid";
 import { APPOINTMENTS } from "../features/agenda/data/agenda.mock";
 import type { ViewMode, WeekDay } from "../features/agenda/types/agenda.types";
 
@@ -85,12 +86,19 @@ export const AgendaPage = () => {
       />
 
       {/* Calendar Grid */}
-      <CalendarGrid
-        days={daysToRender.length > 0 ? daysToRender : [currentWeekDays[0]]}
-        appointments={APPOINTMENTS}
-        startHour={0}
-        endHour={23}
-      />
+      {viewMode === "month" ? (
+        <CalendarMonthGrid 
+          currentDate={currentDate} 
+          appointments={APPOINTMENTS} 
+        />
+      ) : (
+        <CalendarGrid
+          days={daysToRender.length > 0 ? daysToRender : [currentWeekDays[0]]}
+          appointments={APPOINTMENTS}
+          startHour={0}
+          endHour={23}
+        />
+      )}
 
       {/* Mobile FAB */}
       <button className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:bg-primary-hover transition-colors z-50 cursor-pointer">
