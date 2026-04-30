@@ -5,6 +5,7 @@ import { DashboardPage } from "../page/DashboardPage";
 import { AgendaPage } from "../page/AgendaPage";
 import { NewAppointmentPage } from "../page/NewAppointmentPage";
 import { PatientsPage } from "../page/PatientsPage";
+import { NewPatientPage } from "../page/NewPatientPage";
 import { DashboardLayout } from "../shared/components/layout/DashboardLayout";
 
 export const AppRouter = createBrowserRouter([
@@ -35,6 +36,10 @@ export const AppRouter = createBrowserRouter([
       {
         path: "pacientes",
         element: <PatientsPage />,
+      },
+      {
+        path: "pacientes/nuevo",
+        element: <NewPatientPage />,
       },
     ],
   },

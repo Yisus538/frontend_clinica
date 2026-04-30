@@ -107,7 +107,11 @@ export const NewAppointmentPage = () => {
                           </div>
                           {searchQuery && (
                             <div className="border-t border-outline-variant py-1 bg-surface-container-lowest sticky bottom-0">
-                               <button type="button" className="w-full px-4 py-3 text-left text-primary-container hover:bg-primary-container hover:text-on-primary-container transition-colors font-body-sm text-body-sm font-medium flex items-center gap-2 cursor-pointer">
+                               <button 
+                                 type="button" 
+                                 onClick={() => navigate("/dashboard/pacientes/nuevo")}
+                                 className="w-full px-4 py-3 text-left text-primary-container hover:bg-primary-container hover:text-on-primary-container transition-colors font-body-sm text-body-sm font-medium flex items-center gap-2 cursor-pointer"
+                               >
                                  <span className="material-symbols-outlined text-[18px]">person_add</span>
                                  Registrar "{searchQuery}" como nuevo
                                </button>
@@ -117,7 +121,11 @@ export const NewAppointmentPage = () => {
                       ) : (
                         <div className="p-6 text-center">
                           <p className="font-body-sm text-body-sm text-on-surface-variant mb-3">No se encontraron pacientes.</p>
-                          <button type="button" className="px-4 py-2.5 bg-primary-container text-on-primary-container rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary transition-colors inline-flex items-center gap-2 cursor-pointer shadow-sm">
+                          <button 
+                            type="button" 
+                            onClick={() => navigate("/dashboard/pacientes/nuevo")}
+                            className="px-4 py-2.5 bg-primary-container text-on-primary-container rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary transition-colors inline-flex items-center gap-2 cursor-pointer shadow-sm"
+                          >
                             <span className="material-symbols-outlined text-[18px]">person_add</span>
                             Registrar nuevo paciente
                           </button>

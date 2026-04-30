@@ -1,5 +1,6 @@
 import { PatientDirectoryTable } from "../features/patients/components/PatientDirectoryTable";
 import { PATIENT_RECORDS } from "../features/patients/data/patients.mock";
+import { Link } from "react-router";
 
 export const PatientsPage = () => {
   return (
@@ -17,10 +18,13 @@ export const PatientsPage = () => {
             <span className="material-symbols-outlined text-outline text-[20px]">filter_list</span>
             Filtrar
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary rounded-lg text-on-primary font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer">
+          <Link 
+            to="/dashboard/pacientes/nuevo"
+            className="flex items-center gap-2 px-4 py-2 bg-primary rounded-lg text-on-primary font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer"
+          >
             <span className="material-symbols-outlined text-[20px]">add</span>
             Nuevo Paciente
-          </button>
+          </Link>
         </div>
       </div>
 
