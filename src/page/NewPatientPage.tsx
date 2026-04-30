@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
+import { ClinicalHistoryModal } from "../features/patients/components/clinical-history/ClinicalHistoryModal";
 
 export const NewPatientPage = () => {
   const navigate = useNavigate();
+  const [isClinicalHistoryModalOpen, setIsClinicalHistoryModalOpen] = useState(false);
 
   return (
     <div className="w-full pb-10">
@@ -80,7 +83,11 @@ export const NewPatientPage = () => {
 
         {/* Section 3: Antecedentes Médicos */}
         <div className="py-4">
-          <button className="w-full group flex flex-col items-center justify-center gap-4 bg-surface-container-low hover:bg-surface-container-high border-2 border-dashed border-primary/30 hover:border-primary rounded-xl py-12 px-6 transition-all duration-300 cursor-pointer" type="button">
+          <button 
+            type="button"
+            onClick={() => setIsClinicalHistoryModalOpen(true)}
+            className="w-full group flex flex-col items-center justify-center gap-4 bg-surface-container-low hover:bg-surface-container-high border-2 border-dashed border-primary/30 hover:border-primary rounded-xl py-12 px-6 transition-all duration-300 cursor-pointer" 
+          >
             <div className="w-16 h-16 rounded-full bg-primary/10 text-primary flex items-center justify-center group-hover:scale-110 transition-transform">
               <span className="material-symbols-outlined text-[32px]">clinical_notes</span>
             </div>
@@ -109,6 +116,11 @@ export const NewPatientPage = () => {
           </button>
         </div>
       </form>
+
+      <ClinicalHistoryModal 
+        isOpen={isClinicalHistoryModalOpen} 
+        onClose={() => setIsClinicalHistoryModalOpen(false)} 
+      />
     </div>
   );
 };
