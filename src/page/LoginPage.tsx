@@ -95,7 +95,7 @@ export const LoginPage = () => {
               name="rememberMe"
               checked={formData.rememberMe as boolean}
               onChange={handleChange}
-              className="rounded focus:ring-[var(--color-primary)] w-5 h-5"
+              className="rounded focus:ring-(--color-primary) w-5 h-5"
               style={{ accentColor: "var(--color-primary)" }}
             />
             <span className="text-sm" style={{ color: "var(--color-text-main)" }}>
