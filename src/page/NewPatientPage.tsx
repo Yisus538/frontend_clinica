@@ -9,7 +9,7 @@ export const NewPatientPage = () => {
   return (
     <div className="w-full pb-10">
       {/* Page Header */}
-      <div className="mb-lg mb-8">
+      <div className="mb-10">
         <h1 className="font-h1 text-h1 text-on-surface">Nuevo Paciente</h1>
         <p className="font-body-sm text-body-sm text-on-surface-variant mt-2">
           Complete el formulario a continuación para registrar un nuevo perfil clínico.
@@ -17,7 +17,7 @@ export const NewPatientPage = () => {
       </div>
 
       <form 
-        className="space-y-gutter space-y-6"
+        className="space-y-6"
         onSubmit={(e) => {
           e.preventDefault();
           // Simular el guardado y regresar a la lista
@@ -25,31 +25,31 @@ export const NewPatientPage = () => {
         }}
       >
         {/* Section 1: Datos Personales */}
-        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-margin p-8 shadow-sm shadow-primary/5">
-          <h2 className="font-h3 text-h3 text-on-surface mb-md pb-xs border-b border-outline-variant/30 flex items-center gap-2 mb-6 pb-2">
+        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-sm shadow-primary/5">
+          <h2 className="font-h3 text-h3 text-on-surface mb-6 pb-2 border-b border-outline-variant/30 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">person</span>
             Datos Personales
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter gap-6">
-            <div className="flex flex-col gap-xs gap-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-1">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="nombre">Nombre</label>
               <input className="h-12 px-sm px-3 border border-outline-variant rounded-DEFAULT rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="nombre" placeholder="Ej. Juan" type="text" required />
             </div>
-            <div className="flex flex-col gap-xs gap-1">
+            <div className="flex flex-col gap-1">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="apellidos">Apellidos</label>
               <input className="h-12 px-sm px-3 border border-outline-variant rounded-DEFAULT rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="apellidos" placeholder="Ej. Pérez" type="text" required />
             </div>
-            <div className="flex flex-col gap-xs gap-1">
+            <div className="flex flex-col gap-1">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="dni">ID / DNI</label>
               <input className="h-12 px-sm px-3 border border-outline-variant rounded-DEFAULT rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="dni" placeholder="Número de documento" type="text" required />
             </div>
-            <div className="flex flex-col gap-xs gap-1">
+            <div className="flex flex-col gap-1">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="dob">Fecha de Nacimiento</label>
               <input className="h-12 px-sm px-3 border border-outline-variant rounded-DEFAULT rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface" id="dob" type="date" required />
             </div>
-            <div className="flex flex-col gap-xs gap-1">
+            <div className="flex flex-col gap-1">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="genero">Género</label>
-              <select defaultValue="" className="h-12 px-sm px-3 border border-outline-variant rounded-DEFAULT rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface appearance-none" id="genero" required>
+              <select defaultValue="" className="h-12 px-3 border border-outline-variant rounded-DEFAULT rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface appearance-none" id="genero" required>
                 <option disabled value="">Seleccione</option>
                 <option value="f">Femenino</option>
                 <option value="m">Masculino</option>
@@ -60,21 +60,21 @@ export const NewPatientPage = () => {
         </section>
 
         {/* Section 2: Información de Contacto */}
-        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-margin p-8 shadow-sm shadow-primary/5">
-          <h2 className="font-h3 text-h3 text-on-surface mb-md pb-xs border-b border-outline-variant/30 flex items-center gap-2 mb-6 pb-2">
+        <section className="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-sm shadow-primary/5">
+          <h2 className="font-h3 text-h3 text-on-surface mb-6 pb-2 border-b border-outline-variant/30 flex items-center gap-2">
             <span className="material-symbols-outlined text-primary">contact_phone</span>
             Información de Contacto
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter gap-6">
-            <div className="flex flex-col gap-xs gap-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-1">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="email">Correo Electrónico</label>
               <input className="h-12 px-sm px-3 border border-outline-variant rounded-DEFAULT rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="email" placeholder="ejemplo@correo.com" type="email" />
             </div>
-            <div className="flex flex-col gap-xs gap-1">
+            <div className="flex flex-col gap-1">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="telefono">Teléfono</label>
               <input className="h-12 px-sm px-3 border border-outline-variant rounded-DEFAULT rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="telefono" placeholder="+34 600 000 000" type="tel" required />
             </div>
-            <div className="flex flex-col gap-xs gap-1 md:col-span-2">
+            <div className="flex flex-col gap-1 md:col-span-2">
               <label className="font-label-md text-label-md text-on-surface" htmlFor="direccion">Dirección Residencial</label>
               <input className="h-12 px-sm px-3 border border-outline-variant rounded-DEFAULT rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface placeholder:text-outline" id="direccion" placeholder="Calle, Número, Ciudad, Código Postal" type="text" />
             </div>
@@ -99,17 +99,17 @@ export const NewPatientPage = () => {
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-md gap-6 pt-lg pt-10 pb-xl pb-16">
+        <div className="flex items-center justify-end gap-6 pt-10 pb-16">
           <button 
             type="button"
             onClick={() => navigate(-1)}
-            className="h-12 px-lg px-10 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-center cursor-pointer" 
+            className="h-12 px-10 rounded-full font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors flex items-center justify-center cursor-pointer" 
           >
             Cancelar
           </button>
           <button 
             type="submit"
-            className="h-12 px-xl px-16 bg-primary text-on-primary font-label-md text-label-md hover:bg-surface-tint shadow-sm shadow-primary/20 transition-all flex items-center justify-center gap-2 rounded-lg cursor-pointer" 
+            className="h-12 px-16 bg-primary text-on-primary font-label-md text-label-md hover:bg-surface-tint shadow-sm shadow-primary/20 transition-all flex items-center justify-center gap-2 rounded-lg cursor-pointer" 
           >
             Guardar Paciente
             <span className="material-symbols-outlined text-[18px]">save</span>

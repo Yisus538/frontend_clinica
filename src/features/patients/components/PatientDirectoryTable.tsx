@@ -1,4 +1,5 @@
 import type{ PatientRecord, PatientStatus } from "../types/patients.types";
+import { useNavigate } from "react-router";
 
 const STATUS_STYLES: Record<PatientStatus, string> = {
   "En Tratamiento": "bg-surface-container-high text-primary",
@@ -11,6 +12,8 @@ interface PatientDirectoryTableProps {
 }
 
 export const PatientDirectoryTable = ({ patients }: PatientDirectoryTableProps) => {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
       <div className="overflow-x-auto">
@@ -27,7 +30,11 @@ export const PatientDirectoryTable = ({ patients }: PatientDirectoryTableProps) 
           </thead>
           <tbody className="divide-y divide-outline-variant/50">
             {patients.map((patient) => (
-              <tr key={patient.id} className="hover:bg-surface/50 transition-colors group">
+              <tr 
+                key={patient.id} 
+                className="hover:bg-surface/50 transition-colors group cursor-pointer"
+                onClick={() => navigate(`/dashboard/pacientes/${patient.id}`)}
+              >
                 <td className="py-4 px-6">
                   <div className="flex items-center gap-3">
                     {patient.avatarUrl ? (
