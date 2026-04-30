@@ -31,7 +31,7 @@ export const AuthCard = ({
       style={{
         maxWidth,
         background: "var(--color-white)",
-        borderRadius: "var(--radius-lg)",
+        borderRadius: "var(--radius-card)",
         border: "1px solid var(--color-border)",
       }}
     >
