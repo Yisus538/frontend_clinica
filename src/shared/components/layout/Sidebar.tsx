@@ -2,8 +2,8 @@ import { useLocation } from "react-router";
 import type { SidebarProps } from "../../../features/dashboard/types/dashboard.types";
 
 const NAV_ITEMS = [
-  { icon: "dashboard", label: "Dashboard", href: "/dashboard", filled: true },
-  { icon: "calendar_month", label: "Agenda", href: "/schedule" },
+  { icon: "dashboard", label: "Dashboard", href: "/dashboard", filled: true, exact: true },
+  { icon: "calendar_month", label: "Agenda", href: "/dashboard/agenda" },
   { icon: "group", label: "Pacientes", href: "/patients" },
   { icon: "dentistry", label: "Tratamientos", href: "/treatments" },
   { icon: "payments", label: "Finanzas", href: "/finances" },
@@ -24,7 +24,8 @@ export const Sidebar = ({
 }: Partial<SidebarProps>) => {
   const { pathname } = useLocation();
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const isActive = (href: string, exact?: boolean) =>
+    exact ? pathname === href : pathname === href || pathname.startsWith(href + "/");
   const width = expanded ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED;
 
   return (
@@ -76,7 +77,7 @@ export const Sidebar = ({
       {/* Navigation Links */}
       <div className={`flex flex-col w-full gap-1 ${expanded ? "px-3" : "items-center"}`}>
         {items.map((item) => {
-          const active = isActive(item.href);
+          const active = isActive(item.href, item.exact);
           return (
             <a
               key={item.href}

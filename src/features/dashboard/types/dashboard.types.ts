@@ -5,6 +5,7 @@ export interface NavItem {
   label: string;
   href: string;
   filled?: boolean;
+  exact?: boolean;
 }
 
 export interface MetricCardData {

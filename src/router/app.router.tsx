@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router";
 import { LoginPage } from "../page/LoginPage";
 import { ForgotPasswordPage } from "../page/ForgotPasswordPage";
 import { DashboardPage } from "../page/DashboardPage";
+import { AgendaPage } from "../page/AgendaPage";
 import { DashboardLayout } from "../shared/components/layout/DashboardLayout";
 
 export const AppRouter = createBrowserRouter([
@@ -20,6 +21,10 @@ export const AppRouter = createBrowserRouter([
       {
         index: true,
         element: <DashboardPage />,
+      },
+      {
+        path: "agenda",
+        element: <AgendaPage />,
       },
     ],
   },
