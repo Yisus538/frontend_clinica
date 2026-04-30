@@ -1,11 +1,17 @@
+import type { TopBarProps } from "../../../features/dashboard/types/dashboard.types";
+import { SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED } from "./Sidebar";
+
 const AVATAR_URL =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuAbkPs-JNfDEkdrQUhZGMrshgKHvGn7f_ECIEEM3_JMX-WwRqASE1Q6kgIB79_XwYxzhKUN8KBV2MFYQ_NV3a0ub7dBDt_SBROlam5wDJiVomzoRqE3AYAEqD1ogA2PyIZ9zyiPeHsfu5rQzd2TO99o5P9zBWrlmN0Wp1HNwA2nc6wLX5e0S-nNUuu3Zgjv7-y7dhu3SdGaI443vsHWuQK-TFU70HQMncTODaDlcoGCB0OXFtqYlEvLN_CM4jg4fWqfc3yT_nsJeyo";
 
-export const TopBar = () => {
+export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
+  const sidebarWidth = sidebarExpanded ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED;
+
   return (
     <header
       id="top-bar"
-      className="fixed top-0 right-0 left-20 h-16 flex items-center justify-between px-8 z-30 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant"
+      className="fixed top-0 right-0 h-16 flex items-center justify-between px-8 z-30 bg-surface-container-lowest/80 backdrop-blur-md border-b border-outline-variant transition-all duration-300 ease-in-out"
+      style={{ left: sidebarWidth }}
     >
       {/* Search */}
       <div className="flex-1 flex items-center">

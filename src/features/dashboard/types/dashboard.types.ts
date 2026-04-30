@@ -39,12 +39,15 @@ export interface AgendaItemData {
 export interface TopBarProps {
   doctorName?: string;
   avatarUrl?: string;
+  sidebarExpanded?: boolean;
 }
 
 export interface SidebarProps {
   items: NavItem[];
   activeHref: string;
   bottomItems?: NavItem[];
+  expanded?: boolean;
+  onToggle?: () => void;
 }
 
 export interface DashboardLayoutProps {

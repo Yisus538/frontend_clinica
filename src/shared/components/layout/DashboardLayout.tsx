@@ -1,14 +1,23 @@
+import { useState } from "react";
 import { Outlet } from "react-router";
-import { Sidebar } from "./Sidebar";
+import { Sidebar, SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED } from "./Sidebar";
 import { TopBar } from "./TopBar";
 
 export const DashboardLayout = () => {
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+
+  const toggleSidebar = () => setSidebarExpanded((prev) => !prev);
+  const sidebarWidth = sidebarExpanded ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED;
+
   return (
     <div className="min-h-screen bg-background text-on-surface font-body-md">
-      <Sidebar />
-      <TopBar />
+      <Sidebar expanded={sidebarExpanded} onToggle={toggleSidebar} />
+      <TopBar sidebarExpanded={sidebarExpanded} />
 
-      <main className="ml-20 mt-16 p-gutter max-w-[1400px] mx-auto">
+      <main
+        className="mt-16 p-gutter max-w-[1400px] mx-auto transition-all duration-300 ease-in-out"
+        style={{ marginLeft: sidebarWidth }}
+      >
         <Outlet />
       </main>
     </div>
