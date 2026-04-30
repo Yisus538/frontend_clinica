@@ -15,7 +15,7 @@ export const DashboardLayout = () => {
       <TopBar sidebarExpanded={sidebarExpanded} />
 
       <main
-        className="mt-16 p-gutter max-w-[1400px] mx-auto transition-all duration-300 ease-in-out"
+        className="mt-16 p-gutter transition-all duration-300 ease-in-out"
         style={{ marginLeft: sidebarWidth }}
       >
         <Outlet />
