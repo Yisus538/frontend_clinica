@@ -20,14 +20,18 @@ export const AuthCard = ({
   >
     {/* Fondo decorativo */}
     <div
-      className="absolute inset-0 z-0 opacity-30 bg-cover bg-center"
-      style={{ backgroundImage: `url('${BG_URL}')` }}
+      className="absolute inset-0 z-0 bg-cover bg-center"
+      style={{ 
+        backgroundImage: `url('${BG_URL}')`,
+        animation: "fadeIn 1s ease-out forwards",
+        opacity: 0
+      }}
       aria-hidden="true"
     />
 
     {/* Card */}
     <main
-      className="relative z-10 w-full mx-4 flex flex-col items-center px-12 py-12 shadow-sm"
+      className="relative z-10 w-full mx-4 flex flex-col items-center px-12 py-12 shadow-sm animate-fade-in-up"
       style={{
         maxWidth,
         background: "var(--color-white)",
