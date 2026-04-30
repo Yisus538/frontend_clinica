@@ -49,7 +49,7 @@ export const Button = ({
         px-5 text-sm font-semibold tracking-wide
         transition-colors cursor-pointer
         disabled:opacity-60 disabled:cursor-not-allowed
-        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)]
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--color-primary)
         ${fullWidth ? "w-full" : ""}
         ${className}
       `}

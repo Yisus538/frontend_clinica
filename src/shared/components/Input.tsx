@@ -32,10 +32,10 @@ export const Input= ({
             fontFamily: "var(--font-base)",
           }}
           className={`
-            w-full border bg-white text-base placeholder:text-[color:var(--color-text-placeholder)]
+            w-full border bg-white text-base placeholder:text-(--color-text-placeholder)
             transition-colors focus:outline-none focus:ring-1
-            ${error ? "focus:border-[var(--color-error)] focus:ring-[var(--color-error)]"
-              : "focus:border-[var(--color-primary)] focus:ring-[var(--color-primary)]"}
+            ${error ? "focus:border-(--color-error) focus:ring-(--color-error)"
+              : "focus:border-(--color-primary) focus:ring-(--color-primary)"}
             ${leftSlot ? "pl-12" : "pl-4"}
             ${rightSlot ? "pr-12" : "pr-4"}
             ${className}
