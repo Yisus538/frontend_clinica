@@ -1,4 +1,5 @@
 import type { ViewMode } from "../types/agenda.types";
+import { Link } from "react-router";
 
 interface CalendarHeaderProps {
   monthYear: string;
@@ -72,7 +73,10 @@ export const CalendarHeader = ({
         ))}
       </div>
 
-      <button className="hidden sm:flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-on-primary px-5 py-2.5 rounded-lg font-label-md transition-colors shadow-sm whitespace-nowrap cursor-pointer">
+      <Link 
+        to="/dashboard/agenda/nueva-cita"
+        className="hidden sm:flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-on-primary px-5 py-2.5 rounded-lg font-label-md transition-colors shadow-sm whitespace-nowrap cursor-pointer"
+      >
         <span
           className="material-symbols-outlined text-sm"
           style={{ fontVariationSettings: "'FILL' 1" }}
@@ -80,7 +84,7 @@ export const CalendarHeader = ({
           add
         </span>
         Nueva Cita
-      </button>
+      </Link>
     </div>
   </div>
 );

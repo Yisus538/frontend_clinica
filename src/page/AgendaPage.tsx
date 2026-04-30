@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router";
 import { CalendarHeader } from "../features/agenda/components/CalendarHeader";
 import { CalendarGrid } from "../features/agenda/components/CalendarGrid";
 import { CalendarMonthGrid } from "../features/agenda/components/CalendarMonthGrid";
@@ -101,14 +102,17 @@ export const AgendaPage = () => {
       )}
 
       {/* Mobile FAB */}
-      <button className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:bg-primary-hover transition-colors z-50 cursor-pointer">
+      <Link 
+        to="/dashboard/agenda/nueva-cita"
+        className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:bg-primary-hover transition-colors z-50 cursor-pointer"
+      >
         <span
           className="material-symbols-outlined text-2xl"
           style={{ fontVariationSettings: "'FILL' 1" }}
         >
           add
         </span>
-      </button>
+      </Link>
     </div>
   );
 };
