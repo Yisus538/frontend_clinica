@@ -17,9 +17,23 @@
   --color-surface: #f8f9ff;
   --color-white: #ffffff;
 
+  /* Secundario */
+  --color-secondary: #006a61;
+  --color-secondary-light: #89f5e7;
+  --color-secondary-text: #00201d;
+
+  /* Contenedores de superficie */
+  --color-surface-container-high: #dce9ff;
+
+  /* Primario fijo (badges, cards) */
+  --color-primary-fixed: #dbe1ff;
+  --color-primary-fixed-text: #00174b;
+  --color-primary-fixed-dim: #b4c5ff;
+
   /* Error */
   --color-error: #ba1a1a;
   --color-error-light: #ffdad6;
+  --color-error-container-text: #93000a;
 
   /* Radios */
   --radius-sm: 6px;

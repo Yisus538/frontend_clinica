@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { useForm } from "../../../shared/hooks/useForm";
 import type { LoginFormData, LoginFormErrors } from "../types/auth.types";
 
@@ -24,14 +25,16 @@ function validate(data: LoginFormData): LoginFormErrors {
 }
 
 export function useLoginForm() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<LoginFormData>({
     initialValues: INITIAL_VALUES,
     validate,
-    onSubmit: async (data) => {
+    onSubmit: async (_data) => {
+      // TODO: integrar con API de autenticación
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Login exitoso:", data);
+      navigate("/dashboard");
     },
   });
 
