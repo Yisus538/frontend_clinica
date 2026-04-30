@@ -1,32 +1,92 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { CalendarHeader } from "../features/agenda/components/CalendarHeader";
 import { CalendarGrid } from "../features/agenda/components/CalendarGrid";
-import { WEEK_DAYS, APPOINTMENTS } from "../features/agenda/data/agenda.mock";
-import type { ViewMode } from "../features/agenda/types/agenda.types";
+import { APPOINTMENTS } from "../features/agenda/data/agenda.mock";
+import type { ViewMode, WeekDay } from "../features/agenda/types/agenda.types";
+
+/* ── Helpers ── */
+function getWeekDays(baseDate: Date): WeekDay[] {
+  const days: WeekDay[] = [];
+  const startOfWeek = new Date(baseDate);
+  // Convert Sunday (0) to 7 so Monday is 1
+  const day = startOfWeek.getDay() === 0 ? 7 : startOfWeek.getDay();
+  // Move to Monday
+  startOfWeek.setDate(startOfWeek.getDate() - day + 1);
+
+  const abbrs = ["LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB", "DOM"];
+  const today = new Date();
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startOfWeek);
+    d.setDate(d.getDate() + i);
+    
+    days.push({
+      abbr: abbrs[i],
+      number: d.getDate(),
+      isToday: d.toDateString() === today.toDateString(),
+      isWeekend: i >= 5, // Sat (5) and Sun (6)
+    });
+  }
+  return days;
+}
 
 export const AgendaPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Determinar qué días mostrar basado en la vista (Mes se mantiene en modo semana por ahora como fallback)
+  const currentWeekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
+
+  // Formato del encabezado, ej: "Abril 2026"
+  const monthYear = currentDate.toLocaleDateString("es-AR", {
+    month: "long",
+    year: "numeric"
+  }).replace(/^\w/, c => c.toUpperCase());
+
+  // Determinar qué días mostrar basado en la vista
   const daysToRender = viewMode === "day"
-    ? WEEK_DAYS.filter((d) => d.isToday)
-    : WEEK_DAYS;
+    ? currentWeekDays.filter((_, i) => {
+        // Find which day of the week corresponds to currentDate
+        const currentDayIndex = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1;
+        return i === currentDayIndex;
+      })
+    : currentWeekDays;
+
+  // Navegación
+  const handlePrev = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === "day") newDate.setDate(newDate.getDate() - 1);
+    else if (viewMode === "week") newDate.setDate(newDate.getDate() - 7);
+    else newDate.setMonth(newDate.getMonth() - 1);
+    setCurrentDate(newDate);
+  };
+
+  const handleNext = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === "day") newDate.setDate(newDate.getDate() + 1);
+    else if (viewMode === "week") newDate.setDate(newDate.getDate() + 7);
+    else newDate.setMonth(newDate.getMonth() + 1);
+    setCurrentDate(newDate);
+  };
+
+  const handleToday = () => {
+    setCurrentDate(new Date());
+  };
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px-48px)]">
-      {/* Calendar Header: month/year, navigation, view toggle, new appointment */}
+      {/* Calendar Header */}
       <CalendarHeader
-        monthYear="Junio 2024"
+        monthYear={monthYear}
         viewMode={viewMode}
         onViewChange={setViewMode}
-        onPrev={() => {}}
-        onNext={() => {}}
-        onToday={() => {}}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        onToday={handleToday}
       />
 
       {/* Calendar Grid */}
       <CalendarGrid
-        days={daysToRender.length > 0 ? daysToRender : [WEEK_DAYS[0]]}
+        days={daysToRender.length > 0 ? daysToRender : [currentWeekDays[0]]}
         appointments={APPOINTMENTS}
         startHour={0}
         endHour={23}
