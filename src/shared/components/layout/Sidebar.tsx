@@ -1,4 +1,4 @@
-import { useLocation } from "react-router";
+import { useLocation, Link } from "react-router";
 import type { SidebarProps } from "../../../features/dashboard/types/dashboard.types";
 
 const NAV_ITEMS = [
@@ -79,9 +79,9 @@ export const Sidebar = ({
         {items.map((item) => {
           const active = isActive(item.href, item.exact);
           return (
-            <a
+            <Link
               key={item.href}
-              href={item.href}
+              to={item.href}
               aria-label={item.label}
               title={!expanded ? item.label : undefined}
               className={`
@@ -104,7 +104,7 @@ export const Sidebar = ({
                   {item.label}
                 </span>
               )}
-            </a>
+            </Link>
           );
         })}
       </div>
@@ -112,9 +112,9 @@ export const Sidebar = ({
       {/* Bottom Actions */}
       <div className={`mt-auto flex flex-col gap-1 ${expanded ? "px-3" : "items-center"}`}>
         {bottomItems?.map((item) => (
-          <a
+          <Link
             key={item.href}
-            href={item.href}
+            to={item.href}
             aria-label={item.label}
             title={!expanded ? item.label : undefined}
             className={`
@@ -128,7 +128,7 @@ export const Sidebar = ({
                 {item.label}
               </span>
             )}
-          </a>
+          </Link>
         ))}
       </div>
     </nav>
