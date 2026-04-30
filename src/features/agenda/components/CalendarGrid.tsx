@@ -10,6 +10,7 @@ export const CalendarGrid = ({
   appointments,
   startHour = 0,
   endHour = 23,
+  onAppointmentMove,
 }: CalendarGridProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -37,6 +38,32 @@ export const CalendarGrid = ({
     if (h < 12) return `${h} AM`;
     if (h === 12) return "12 PM";
     return `${h - 12} PM`;
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // Necessary to allow dropping
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, hour: number, colIdx: number) => {
+    e.preventDefault();
+    const appointmentId = e.dataTransfer.getData("text/plain");
+    if (!appointmentId || !onAppointmentMove) return;
+
+    // Calculate startMinute based on drop position inside the cell
+    const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+    const offsetY = e.clientY - rect.top;
+    
+    // Calculate nearest 15-minute interval
+    const pixelsPerMinute = SLOT_HEIGHT / 60;
+    const minutes = Math.floor(offsetY / pixelsPerMinute);
+    // Snap to nearest 15 minutes
+    const startMinute = Math.round(minutes / 15) * 15;
+    
+    // Cap at 45 minutes
+    const snappedMinute = Math.max(0, Math.min(45, startMinute));
+
+    onAppointmentMove(appointmentId, colIdx, hour, snappedMinute);
   };
 
   return (
@@ -170,7 +197,12 @@ export const CalendarGrid = ({
                         (a) => a.dayIndex === colIdx
                       );
                       return (
-                        <div key={`${hour}-${day.abbr}`} className="relative border-r border-outline-variant border-dashed last:border-r-0">
+                        <div 
+                          key={`${hour}-${day.abbr}`} 
+                          className="relative border-r border-outline-variant border-dashed last:border-r-0"
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, hour, colIdx)}
+                        >
                           {cellAppointments.map((apt) => (
                             <AppointmentBlock
                               key={apt.id}

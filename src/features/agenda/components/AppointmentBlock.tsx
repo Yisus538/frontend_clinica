@@ -27,7 +27,13 @@ export const AppointmentBlock = ({ appointment, slotHeight, startHour }: Appoint
 
   return (
     <div
-      className={`absolute left-1 right-1 ${style.bg} ${style.text} rounded-md border ${style.border} p-2 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer z-30`}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", appointment.id);
+        // Optional: you can set the drag image or effect
+        e.dataTransfer.effectAllowed = "move";
+      }}
+      className={`absolute left-1 right-1 ${style.bg} ${style.text} rounded-md border ${style.border} p-2 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-move z-30`}
       style={{ top: topPx, height: heightPx }}
     >
       <div className="font-label-sm text-label-sm font-semibold truncate flex items-center gap-1">

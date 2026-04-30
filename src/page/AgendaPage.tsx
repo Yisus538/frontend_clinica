@@ -35,6 +35,7 @@ function getWeekDays(baseDate: Date): WeekDay[] {
 export const AgendaPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [appointments, setAppointments] = useState(APPOINTMENTS);
 
   const currentWeekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
@@ -74,6 +75,20 @@ export const AgendaPage = () => {
     setCurrentDate(new Date());
   };
 
+  const handleAppointmentMove = (id: string, newDayIndex: number, newStartHour: number, newStartMinute: number) => {
+    setAppointments(prev => prev.map(apt => {
+      if (apt.id === id) {
+        return {
+          ...apt,
+          dayIndex: newDayIndex,
+          startHour: newStartHour,
+          startMinute: newStartMinute
+        };
+      }
+      return apt;
+    }));
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-64px-48px)]">
       {/* Calendar Header */}
@@ -90,14 +105,15 @@ export const AgendaPage = () => {
       {viewMode === "month" ? (
         <CalendarMonthGrid 
           currentDate={currentDate} 
-          appointments={APPOINTMENTS} 
+          appointments={appointments} 
         />
       ) : (
         <CalendarGrid
           days={daysToRender.length > 0 ? daysToRender : [currentWeekDays[0]]}
-          appointments={APPOINTMENTS}
+          appointments={appointments}
           startHour={0}
           endHour={23}
+          onAppointmentMove={handleAppointmentMove}
         />
       )}
 

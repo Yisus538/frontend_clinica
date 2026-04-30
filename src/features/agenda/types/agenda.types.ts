@@ -42,6 +42,7 @@ export interface CalendarGridProps {
   appointments: Appointment[];
   startHour?: number;
   endHour?: number;
+  onAppointmentMove?: (id: string, dayIndex: number, startHour: number, startMinute: number) => void;
 }
 
 export interface AppointmentBlockProps {
