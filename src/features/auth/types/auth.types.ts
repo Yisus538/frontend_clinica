@@ -20,3 +20,12 @@ export interface UseLoginFormReturn {
   handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
   toggleShowPassword: () => void;
 }
+export interface ForgotPasswordFormData {
+  email: string;
+  [key: string]: unknown;
+}
+
+export interface ForgotPasswordFormErrors {
+  email?: string;
+  [key: string]: string | undefined;
+}
