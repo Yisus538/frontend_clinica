@@ -1,10 +1,45 @@
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { PATIENTS } from "../features/dashboard/data/dashboard.mock";
 
 export const NewAppointmentPage = () => {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedPatient, setSelectedPatient] = useState<typeof PATIENTS[0] | null>(null);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filteredPatients = PATIENTS.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    p.id.includes(searchQuery)
+  );
+
+  const handleSelectPatient = (patient: typeof PATIENTS[0]) => {
+    setSelectedPatient(patient);
+    setSearchQuery(patient.name);
+    setIsDropdownOpen(false);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedPatient(null);
+    setSearchQuery("");
+    setIsDropdownOpen(true);
+  };
 
   return (
-    <div className="max-w-4xl mx-auto h-[calc(100vh-64px-48px)] overflow-y-auto pb-10">
+    <div className="pb-10 w-full">
       <div className="mb-8">
         <h2 className="font-h1 text-h1 text-on-surface mb-2">Nueva Cita</h2>
         <p className="font-body-md text-body-md text-on-surface-variant">
@@ -25,17 +60,72 @@ export const NewAppointmentPage = () => {
                 <label className="block font-label-md text-label-md text-on-surface mb-2">
                   Buscar Paciente
                 </label>
-                <div className="relative">
+                <div className="relative" ref={dropdownRef}>
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
                   <input 
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface" 
+                    className="w-full pl-10 pr-10 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface" 
                     placeholder="Nombre, DNI o Teléfono" 
                     type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      if (selectedPatient) setSelectedPatient(null);
+                      setIsDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsDropdownOpen(true)}
                   />
+                  {searchQuery && (
+                    <button 
+                      type="button"
+                      onClick={handleClearSelection}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface cursor-pointer flex items-center justify-center"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">close</span>
+                    </button>
+                  )}
+
+                  {isDropdownOpen && (
+                    <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 overflow-hidden max-h-60 overflow-y-auto">
+                      {filteredPatients.length > 0 ? (
+                        <>
+                          <div className="py-1">
+                            {filteredPatients.map(p => (
+                              <div 
+                                key={p.id} 
+                                onClick={() => handleSelectPatient(p)}
+                                className="px-4 py-3 hover:bg-surface-container-low cursor-pointer flex items-center gap-3 transition-colors"
+                              >
+                                <div className="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-xs font-semibold text-on-surface-variant">
+                                  {p.initials}
+                                </div>
+                                <div>
+                                  <div className="font-body-sm text-body-sm text-on-surface font-medium">{p.name}</div>
+                                  <div className="font-caption text-caption text-outline">ID: {p.id}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          {searchQuery && (
+                            <div className="border-t border-outline-variant py-1 bg-surface-container-lowest sticky bottom-0">
+                               <button type="button" className="w-full px-4 py-3 text-left text-primary-container hover:bg-primary-container hover:text-on-primary-container transition-colors font-body-sm text-body-sm font-medium flex items-center gap-2 cursor-pointer">
+                                 <span className="material-symbols-outlined text-[18px]">person_add</span>
+                                 Registrar "{searchQuery}" como nuevo
+                               </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="p-6 text-center">
+                          <p className="font-body-sm text-body-sm text-on-surface-variant mb-3">No se encontraron pacientes.</p>
+                          <button type="button" className="px-4 py-2.5 bg-primary-container text-on-primary-container rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary transition-colors inline-flex items-center gap-2 cursor-pointer shadow-sm">
+                            <span className="material-symbols-outlined text-[18px]">person_add</span>
+                            Registrar nuevo paciente
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <p className="font-caption text-caption text-primary-container mt-2 cursor-pointer hover:underline">
-                  + Registrar Nuevo Paciente
-                </p>
               </div>
               <div>
                 <label className="block font-label-md text-label-md text-on-surface mb-2">
@@ -117,7 +207,7 @@ export const NewAppointmentPage = () => {
           <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant">
             <button 
               onClick={() => navigate(-1)}
-              className="px-6 py-3 rounded-lg font-label-md text-label-md text-secondary hover:bg-secondary-container transition-colors cursor-pointer" 
+              className="px-6 py-3 rounded-lg font-label-md text-label-md text-error hover:bg-error-container transition-colors cursor-pointer" 
               type="button"
             >
               Cancelar
