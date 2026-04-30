@@ -7,6 +7,11 @@ import type { ViewMode } from "../features/agenda/types/agenda.types";
 export const AgendaPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
 
+  // Determinar qué días mostrar basado en la vista (Mes se mantiene en modo semana por ahora como fallback)
+  const daysToRender = viewMode === "day"
+    ? WEEK_DAYS.filter((d) => d.isToday)
+    : WEEK_DAYS;
+
   return (
     <div className="flex flex-col h-[calc(100vh-64px-48px)]">
       {/* Calendar Header: month/year, navigation, view toggle, new appointment */}
@@ -21,10 +26,10 @@ export const AgendaPage = () => {
 
       {/* Calendar Grid */}
       <CalendarGrid
-        days={WEEK_DAYS}
+        days={daysToRender.length > 0 ? daysToRender : [WEEK_DAYS[0]]}
         appointments={APPOINTMENTS}
-        startHour={8}
-        endHour={18}
+        startHour={0}
+        endHour={23}
       />
 
       {/* Mobile FAB */}

@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { CalendarGridProps } from "../types/agenda.types";
 import { AppointmentBlock } from "./AppointmentBlock";
 import { LUNCH_HOUR } from "../data/agenda.mock";
@@ -7,9 +8,27 @@ const SLOT_HEIGHT = 80; // px — height of each hour row
 export const CalendarGrid = ({
   days,
   appointments,
-  startHour = 8,
-  endHour = 18,
+  startHour = 0,
+  endHour = 23,
 }: CalendarGridProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    // Update time every minute
+    const interval = setInterval(() => setCurrentTime(new Date()), 60000);
+
+    // Initial scroll: Go to current hour minus 1
+    if (containerRef.current) {
+      const currentH = new Date().getHours();
+      // Calculate target top pixel, bounded to >= 0
+      const targetY = Math.max(0, currentH - 1 - startHour) * SLOT_HEIGHT;
+      containerRef.current.scrollTop = targetY;
+    }
+
+    return () => clearInterval(interval);
+  }, [startHour]);
+
   const hours = Array.from({ length: endHour - startHour + 1 }, (_, i) => startHour + i);
   const totalDays = days.length;
 
@@ -71,7 +90,10 @@ export const CalendarGrid = ({
       </div>
 
       {/* ── Scrollable Time Grid ── */}
-      <div className="flex-1 overflow-y-auto relative bg-surface-container-lowest">
+      <div 
+        ref={containerRef}
+        className="flex-1 overflow-y-auto relative bg-surface-container-lowest scroll-smooth"
+      >
         {/* Column background lines */}
         <div
           className="absolute inset-0 grid"
@@ -94,6 +116,17 @@ export const CalendarGrid = ({
 
         {/* Rows: one per hour */}
         <div className="relative z-20">
+          {/* Current Time Indicator Line */}
+          <div 
+            className="absolute left-16 right-0 z-40 pointer-events-none flex items-center transition-all duration-1000 ease-linear"
+            style={{ 
+              top: `${(currentTime.getHours() - startHour) * SLOT_HEIGHT + (currentTime.getMinutes() / 60) * SLOT_HEIGHT}px` 
+            }}
+          >
+            <div className="w-2.5 h-2.5 bg-error rounded-full absolute -left-1.5" />
+            <div className="h-[2px] bg-error w-full shadow-[0_0_2px_rgba(186,26,26,0.3)] opacity-70" />
+          </div>
+
           {hours.map((hour) => {
             const isLunch = hour === LUNCH_HOUR;
 
