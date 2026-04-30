@@ -97,11 +97,11 @@ export const ClinicalHistoryModal = ({ isOpen, onClose }: ClinicalHistoryModalPr
   );
 
   return (
-    <div className="fixed inset-0 bg-on-background/40 backdrop-blur-sm z-50 overflow-y-auto print:bg-white print:p-0">
-      <div className="min-h-screen py-10 px-4 flex items-center justify-center pointer-events-none">
+    <div className="fixed inset-0 bg-on-background/40 backdrop-blur-sm z-50 overflow-y-auto print-only print:bg-white print:p-0">
+      <div className="min-h-screen py-10 px-4 flex items-center justify-center pointer-events-none print:block print:min-h-0 print:p-0">
         
         {/* Modal Container */}
-        <div className="max-w-5xl w-full mx-auto bg-surface shadow-2xl rounded-xl print:shadow-none print:w-full pointer-events-auto relative">
+        <div className="max-w-5xl w-full mx-auto bg-surface shadow-2xl rounded-xl print:shadow-none print:w-full pointer-events-auto relative print:m-0 print:rounded-none">
           
           {/* Close button */}
           <button 
