@@ -10,6 +10,7 @@ import { PatientProfilePage } from "../page/PatientProfilePage";
 import { TreatmentsPage } from "../page/TreatmentsPage";
 import { NewTreatmentPage } from "../page/NewTreatmentPage";
 import { FinancesPage } from "../page/FinancesPage";
+import { SettingsPage } from "../page/SettingsPage";
 import { DashboardLayout } from "../shared/components/layout/DashboardLayout";
 
 export const AppRouter = createBrowserRouter([
@@ -60,6 +61,10 @@ export const AppRouter = createBrowserRouter([
       {
         path: "finanzas",
         element: <FinancesPage />,
+      },
+      {
+        path: "configuracion",
+        element: <SettingsPage />,
       },
     ],
   },

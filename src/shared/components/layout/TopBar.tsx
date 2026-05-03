@@ -1,8 +1,7 @@
+import { Link } from "react-router";
 import type { TopBarProps } from "../../../features/dashboard/types/dashboard.types";
 import { SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED } from "./Sidebar";
-
-const AVATAR_URL =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAbkPs-JNfDEkdrQUhZGMrshgKHvGn7f_ECIEEM3_JMX-WwRqASE1Q6kgIB79_XwYxzhKUN8KBV2MFYQ_NV3a0ub7dBDt_SBROlam5wDJiVomzoRqE3AYAEqD1ogA2PyIZ9zyiPeHsfu5rQzd2TO99o5P9zBWrlmN0Wp1HNwA2nc6wLX5e0S-nNUuu3Zgjv7-y7dhu3SdGaI443vsHWuQK-TFU70HQMncTODaDlcoGCB0OXFtqYlEvLN_CM4jg4fWqfc3yT_nsJeyo";
+import { MOCK_USER_PROFILE } from "../../../features/settings/data/settings.mock";
 
 export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
   const sidebarWidth = sidebarExpanded ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED;
@@ -46,13 +45,14 @@ export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
           >
             <span className="material-symbols-outlined">help</span>
           </button>
-          <button
+          <Link
+            to="/dashboard/configuracion"
             id="btn-settings"
-            className="hover:text-primary transition-colors cursor-pointer active:opacity-70"
+            className="hover:text-primary transition-colors cursor-pointer active:opacity-70 flex items-center justify-center"
             aria-label="Configuración"
           >
             <span className="material-symbols-outlined">settings</span>
-          </button>
+          </Link>
         </div>
 
         <div className="h-8 w-px bg-outline-variant mx-2 hidden sm:block" />
@@ -60,8 +60,8 @@ export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
         {/* Profile */}
         <div className="flex items-center gap-2 cursor-pointer" id="profile-menu">
           <img
-            src={AVATAR_URL}
-            alt="Perfil del doctor"
+            src={MOCK_USER_PROFILE.avatarUrl}
+            alt={`Perfil de ${MOCK_USER_PROFILE.fullName}`}
             className="w-8 h-8 rounded-full object-cover border border-outline-variant"
           />
         </div>
