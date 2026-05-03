@@ -10,7 +10,7 @@ const NAV_ITEMS = [
 ];
 
 const BOTTOM_ITEMS = [
-  { icon: "logout", label: "Cerrar Sesión", href: "/logout" },
+  { icon: "logout", label: "Cerrar Sesión", href: "/" },
 ];
 
 export const SIDEBAR_WIDTH_COLLAPSED = 80;  // px

@@ -5,9 +5,9 @@ import { AppRouter } from "./router/app.router";
 export const App = () => {
   return (
     <>
-      <Toaster 
-        position="top-right" 
-        richColors 
+      <Toaster
+        position="top-right"
+        richColors
         closeButton
         toastOptions={{
           style: { fontFamily: 'Inter, sans-serif' }
