@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import { StatCard } from "../shared/components/StatCard";
 import { TreatmentCatalogTable } from "../features/treatments/components/TreatmentCatalogTable";
 import { TREATMENTS_MOCK, TREATMENTS_STATS } from "../features/treatments/data/treatments.mock";
 import type { Treatment } from "../features/treatments/types/treatments.types";
 
 export const TreatmentsPage = () => {
+  const navigate = useNavigate();
   const [treatments, setTreatments] = useState<Treatment[]>(TREATMENTS_MOCK);
 
   const handleToggleStatus = (target: Treatment) => {
@@ -43,6 +45,7 @@ export const TreatmentsPage = () => {
           </button>
           <button
             id="btn-new-treatment"
+            onClick={() => navigate("/dashboard/tratamientos/nuevo")}
             className="flex items-center gap-2 px-4 py-2 bg-primary rounded-lg text-on-primary font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px]">add</span>
