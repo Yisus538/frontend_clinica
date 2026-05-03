@@ -85,8 +85,8 @@ export const Sidebar = ({
               aria-label={item.label}
               title={!expanded ? item.label : undefined}
               className={`
-                flex items-center rounded-xl transition-all duration-200 ease-in-out
-                ${expanded ? "h-11 px-3 gap-3" : "w-12 h-12 justify-center"}
+                flex items-center rounded-xl transition-all duration-200 ease-in-out overflow-hidden
+                ${expanded ? "h-12 px-3 gap-4" : "w-12 h-12 justify-center"}
                 ${active
                   ? "text-primary bg-primary-light"
                   : "text-outline hover:text-primary hover:bg-surface-container-low"
@@ -94,7 +94,7 @@ export const Sidebar = ({
               `}
             >
               <span
-                className="material-symbols-outlined shrink-0"
+                className="material-symbols-outlined text-[24px] shrink-0"
                 style={active ? { fontVariationSettings: "'FILL' 1" } : undefined}
               >
                 {item.icon}
@@ -118,11 +118,11 @@ export const Sidebar = ({
             aria-label={item.label}
             title={!expanded ? item.label : undefined}
             className={`
-              flex items-center rounded-xl text-error hover:bg-error-container transition-all duration-200 ease-in-out
-              ${expanded ? "h-11 px-3 gap-3" : "w-12 h-12 justify-center"}
+              flex items-center rounded-xl text-error hover:bg-error-container transition-all duration-200 ease-in-out overflow-hidden
+              ${expanded ? "h-12 px-3 gap-4" : "w-12 h-12 justify-center"}
             `}
           >
-            <span className="material-symbols-outlined shrink-0">{item.icon}</span>
+            <span className="material-symbols-outlined text-[24px] shrink-0">{item.icon}</span>
             {expanded && (
               <span className="text-body-sm font-body-sm truncate whitespace-nowrap">
                 {item.label}

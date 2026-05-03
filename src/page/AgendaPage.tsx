@@ -103,7 +103,7 @@ export const AgendaPage = () => {
     );
     setSelectedAppointment(null);
     toast.success("Cita actualizada", {
-      description: `Los cambios para la cita de ${updated.patientName} se guardaron correctamente.`
+      description: `Los cambios para la cita de ${updated.patient} se guardaron correctamente.`
     });
   };
 
