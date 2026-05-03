@@ -7,6 +7,7 @@ import { NewAppointmentPage } from "../page/NewAppointmentPage";
 import { PatientsPage } from "../page/PatientsPage";
 import { NewPatientPage } from "../page/NewPatientPage";
 import { PatientProfilePage } from "../page/PatientProfilePage";
+import { TreatmentsPage } from "../page/TreatmentsPage";
 import { DashboardLayout } from "../shared/components/layout/DashboardLayout";
 
 export const AppRouter = createBrowserRouter([
@@ -45,6 +46,10 @@ export const AppRouter = createBrowserRouter([
       {
         path: "pacientes/:id",
         element: <PatientProfilePage />,
+      },
+      {
+        path: "tratamientos",
+        element: <TreatmentsPage />,
       },
     ],
   },
