@@ -1,17 +1,35 @@
-import type { AppointmentBlockProps } from "../types/agenda.types";
+import type { AppointmentBlockProps, AppointmentStatus } from "../types/agenda.types";
 
-/** Color maps per appointment variant */
-const VARIANT_STYLES: Record<string, { bg: string; text: string; border: string }> = {
-  primary:   { bg: "bg-primary-container",   text: "text-on-primary-container",   border: "border-primary/20" },
-  secondary: { bg: "bg-secondary-container", text: "text-on-secondary-container", border: "border-secondary/20" },
-  error:     { bg: "bg-error-container",     text: "text-on-error-container",     border: "border-error/20" },
-  neutral:   { bg: "bg-surface-variant",     text: "text-on-surface",             border: "border-outline-variant" },
+/** Color maps per appointment variant (fallback when no status is set) */
+const VARIANT_STYLES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+  primary:   { bg: "bg-primary-container",   text: "text-on-primary-container",   border: "border-primary/20",      dot: "bg-primary" },
+  secondary: { bg: "bg-secondary-container", text: "text-on-secondary-container", border: "border-secondary/20",    dot: "bg-secondary" },
+  error:     { bg: "bg-error-container",     text: "text-on-error-container",     border: "border-error/20",        dot: "bg-error" },
+  neutral:   { bg: "bg-surface-variant",     text: "text-on-surface",             border: "border-outline-variant", dot: "bg-outline" },
 };
 
-export const AppointmentBlock = ({ appointment, slotHeight, startHour }: AppointmentBlockProps) => {
-  const { patient, treatment, doctor, startHour: aptStart, startMinute, durationMinutes, variant, isUrgent } =
-    appointment;
-  const style = VARIANT_STYLES[variant] ?? VARIANT_STYLES.neutral;
+/** Status overrides the variant — updated automatically when the edit modal saves */
+const STATUS_STYLES: Record<AppointmentStatus, { bg: string; text: string; border: string; dot: string }> = {
+  Confirmada: { bg: "bg-secondary-container", text: "text-on-secondary-container", border: "border-secondary/20",    dot: "bg-secondary" },
+  Pendiente:  { bg: "bg-primary-container",   text: "text-on-primary-container",   border: "border-primary/20",      dot: "bg-primary" },
+  Cancelada:  { bg: "bg-surface-variant",     text: "text-on-surface-variant",     border: "border-outline-variant", dot: "bg-outline" },
+};
+
+export const AppointmentBlock = ({ appointment, slotHeight, startHour, onClick }: AppointmentBlockProps) => {
+  const {
+    patient,
+    treatment,
+    doctor,
+    startHour: aptStart,
+    startMinute,
+    durationMinutes,
+    variant,
+    isUrgent,
+    status,
+  } = appointment;
+
+  /* Status takes visual priority over the static variant */
+  const style = status ? STATUS_STYLES[status] : (VARIANT_STYLES[variant] ?? VARIANT_STYLES.neutral);
 
   /* Position & sizing */
   const topPx = ((aptStart - startHour) * 60 + startMinute) * (slotHeight / 60);
@@ -30,12 +48,16 @@ export const AppointmentBlock = ({ appointment, slotHeight, startHour }: Appoint
       draggable
       onDragStart={(e) => {
         e.dataTransfer.setData("text/plain", appointment.id);
-        // Optional: you can set the drag image or effect
         e.dataTransfer.effectAllowed = "move";
       }}
-      className={`absolute left-1 right-1 ${style.bg} ${style.text} rounded-md border ${style.border} p-2 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-move z-30`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.(appointment);
+      }}
+      className={`absolute left-1 right-1 ${style.bg} ${style.text} rounded-md border ${style.border} p-2 overflow-hidden shadow-sm hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer z-30`}
       style={{ top: topPx, height: heightPx }}
     >
+      {/* Patient name row */}
       <div className="font-label-sm text-label-sm font-semibold truncate flex items-center gap-1">
         {isUrgent && (
           <span
@@ -45,7 +67,13 @@ export const AppointmentBlock = ({ appointment, slotHeight, startHour }: Appoint
             warning
           </span>
         )}
-        {patient}
+        <span className="truncate">{patient}</span>
+
+        {/* Status dot — reflects changes from the edit modal instantly */}
+        <span
+          title={status}
+          className={`ml-auto shrink-0 w-2 h-2 rounded-full ${style.dot}`}
+        />
       </div>
 
       <div className="font-caption text-caption opacity-90 truncate mt-0.5">{treatment}</div>

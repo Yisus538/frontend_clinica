@@ -20,6 +20,7 @@ export const APPOINTMENTS: Appointment[] = [
     durationMinutes: 60,
     dayIndex: 2, // Miércoles
     variant: "primary",
+    status: "Confirmada",
   },
   {
     id: "apt-2",
@@ -30,6 +31,7 @@ export const APPOINTMENTS: Appointment[] = [
     durationMinutes: 45,
     dayIndex: 1, // Martes
     variant: "secondary",
+    status: "Pendiente",
   },
   {
     id: "apt-3",
@@ -41,6 +43,7 @@ export const APPOINTMENTS: Appointment[] = [
     durationMinutes: 90,
     dayIndex: 3, // Jueves
     variant: "neutral",
+    status: "Confirmada",
   },
   {
     id: "apt-4",
@@ -52,6 +55,7 @@ export const APPOINTMENTS: Appointment[] = [
     dayIndex: 4, // Viernes
     variant: "error",
     isUrgent: true,
+    status: "Pendiente",
   },
   {
     id: "apt-5",
@@ -62,6 +66,7 @@ export const APPOINTMENTS: Appointment[] = [
     durationMinutes: 60,
     dayIndex: 0, // Lunes
     variant: "primary",
+    status: "Confirmada",
   },
   {
     id: "apt-6",
@@ -73,7 +78,9 @@ export const APPOINTMENTS: Appointment[] = [
     durationMinutes: 90,
     dayIndex: 2, // Miércoles
     variant: "secondary",
+    status: "Cancelada",
   },
 ];
+
 
 export const LUNCH_HOUR = 13;

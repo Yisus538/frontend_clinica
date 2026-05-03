@@ -3,8 +3,9 @@ import { Link } from "react-router";
 import { CalendarHeader } from "../features/agenda/components/CalendarHeader";
 import { CalendarGrid } from "../features/agenda/components/CalendarGrid";
 import { CalendarMonthGrid } from "../features/agenda/components/CalendarMonthGrid";
+import { AppointmentEditModal } from "../features/agenda/components/AppointmentEditModal";
 import { APPOINTMENTS } from "../features/agenda/data/agenda.mock";
-import type { ViewMode, WeekDay } from "../features/agenda/types/agenda.types";
+import type { Appointment, ViewMode, WeekDay } from "../features/agenda/types/agenda.types";
 
 /* ── Helpers ── */
 function getWeekDays(baseDate: Date): WeekDay[] {
@@ -36,6 +37,7 @@ export const AgendaPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [appointments, setAppointments] = useState(APPOINTMENTS);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   const currentWeekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
@@ -89,6 +91,17 @@ export const AgendaPage = () => {
     }));
   };
 
+  const handleAppointmentClick = (apt: Appointment) => {
+    setSelectedAppointment(apt);
+  };
+
+  const handleSaveAppointment = (updated: Appointment) => {
+    setAppointments((prev) =>
+      prev.map((a) => (a.id === updated.id ? updated : a))
+    );
+    setSelectedAppointment(null);
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-64px-48px)]">
       {/* Calendar Header */}
@@ -114,6 +127,7 @@ export const AgendaPage = () => {
           startHour={0}
           endHour={23}
           onAppointmentMove={handleAppointmentMove}
+          onAppointmentClick={handleAppointmentClick}
         />
       )}
 
@@ -129,6 +143,14 @@ export const AgendaPage = () => {
           add
         </span>
       </Link>
+
+      {/* Edit Appointment Modal */}
+      <AppointmentEditModal
+        isOpen={selectedAppointment !== null}
+        appointment={selectedAppointment}
+        onClose={() => setSelectedAppointment(null)}
+        onSave={handleSaveAppointment}
+      />
     </div>
   );
 };

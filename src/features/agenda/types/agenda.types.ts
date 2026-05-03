@@ -2,6 +2,8 @@
 
 export type ViewMode = "day" | "week" | "month";
 
+export type AppointmentStatus = "Confirmada" | "Pendiente" | "Cancelada";
+
 export type AppointmentVariant = "primary" | "secondary" | "error" | "neutral";
 
 export interface Appointment {
@@ -19,6 +21,7 @@ export interface Appointment {
   dayIndex: number;
   variant: AppointmentVariant;
   isUrgent?: boolean;
+  status?: AppointmentStatus;
 }
 
 export interface WeekDay {
@@ -43,10 +46,12 @@ export interface CalendarGridProps {
   startHour?: number;
   endHour?: number;
   onAppointmentMove?: (id: string, dayIndex: number, startHour: number, startMinute: number) => void;
+  onAppointmentClick?: (appointment: Appointment) => void;
 }
 
 export interface AppointmentBlockProps {
   appointment: Appointment;
   slotHeight: number;
   startHour: number;
+  onClick?: (appointment: Appointment) => void;
 }

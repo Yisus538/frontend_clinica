@@ -11,6 +11,7 @@ export const CalendarGrid = ({
   startHour = 0,
   endHour = 23,
   onAppointmentMove,
+  onAppointmentClick,
 }: CalendarGridProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -209,6 +210,7 @@ export const CalendarGrid = ({
                               appointment={apt}
                               slotHeight={SLOT_HEIGHT}
                               startHour={hour}
+                              onClick={onAppointmentClick}
                             />
                           ))}
                         </div>
