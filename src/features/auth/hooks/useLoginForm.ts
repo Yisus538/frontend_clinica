@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { useForm } from "../../../shared/hooks/useForm";
 import type { LoginFormData, LoginFormErrors } from "../types/auth.types";
 
@@ -34,6 +35,7 @@ export function useLoginForm() {
     onSubmit: async (_data) => {
       // TODO: integrar con API de autenticación
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      toast.success("Sesión iniciada correctamente");
       navigate("/dashboard");
     },
   });

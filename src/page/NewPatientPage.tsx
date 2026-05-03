@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { ClinicalHistoryModal } from "../features/patients/components/clinical-history/ClinicalHistoryModal";
 
 export const NewPatientPage = () => {
@@ -21,6 +22,9 @@ export const NewPatientPage = () => {
         onSubmit={(e) => {
           e.preventDefault();
           // Simular el guardado y regresar a la lista
+          toast.success("Paciente registrado correctamente", {
+            description: "El nuevo perfil clínico ha sido creado."
+          });
           navigate("/dashboard/pacientes");
         }}
       >

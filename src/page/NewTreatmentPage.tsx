@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import type { TreatmentCategory } from "../features/treatments/types/treatments.types";
 import { TREATMENTS_MOCK } from "../features/treatments/data/treatments.mock";
 
@@ -30,6 +31,9 @@ export const NewTreatmentPage = () => {
     };
     
     TREATMENTS_MOCK.unshift(newTreatment);
+    toast.success("Tratamiento guardado correctamente", {
+      description: `El tratamiento ${name} ha sido añadido al catálogo.`
+    });
     navigate("/dashboard/tratamientos");
   };
 

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { PATIENTS } from "../features/dashboard/data/dashboard.mock";
 
 export const NewAppointmentPage = () => {
@@ -48,7 +49,11 @@ export const NewAppointmentPage = () => {
       </div>
 
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-8">
-        <form onSubmit={(e) => { e.preventDefault(); navigate(-1); }}>
+        <form onSubmit={(e) => { 
+          e.preventDefault(); 
+          toast.success("Cita agendada correctamente");
+          navigate(-1); 
+        }}>
           {/* Section 1: Patient Info */}
           <div className="mb-10">
             <h3 className="font-h3 text-h3 text-on-surface border-b border-outline-variant pb-2 mb-6 flex items-center gap-2">

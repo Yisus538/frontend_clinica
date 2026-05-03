@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router";
+import { toast } from "sonner";
 import { CalendarHeader } from "../features/agenda/components/CalendarHeader";
 import { CalendarGrid } from "../features/agenda/components/CalendarGrid";
 import { CalendarMonthGrid } from "../features/agenda/components/CalendarMonthGrid";
@@ -89,6 +90,7 @@ export const AgendaPage = () => {
       }
       return apt;
     }));
+    toast.success("Cita reprogramada");
   };
 
   const handleAppointmentClick = (apt: Appointment) => {
@@ -100,6 +102,9 @@ export const AgendaPage = () => {
       prev.map((a) => (a.id === updated.id ? updated : a))
     );
     setSelectedAppointment(null);
+    toast.success("Cita actualizada", {
+      description: `Los cambios para la cita de ${updated.patientName} se guardaron correctamente.`
+    });
   };
 
   return (

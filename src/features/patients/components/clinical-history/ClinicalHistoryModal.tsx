@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Tooth } from './Tooth';
 import { 
   COLORS, 
@@ -52,6 +53,9 @@ export const ClinicalHistoryModal = ({ isOpen, onClose }: ClinicalHistoryModalPr
   const saveNote = () => {
     setTeeth(prevTeeth => prevTeeth.map(t => t.id === activeNoteId ? { ...t, note: noteText } : t));
     setActiveNoteId(null);
+    toast.success("Anotación guardada", {
+      description: `Se actualizó la nota para la pieza ${activeNoteId}.`
+    });
   };
 
   const getQuadrant = (start: number, end: number) => {
@@ -485,6 +489,9 @@ export const ClinicalHistoryModal = ({ isOpen, onClose }: ClinicalHistoryModalPr
             <button 
               onClick={() => {
                 console.log('Datos a guardar en BD:', { paciente: formData, odontograma: teeth });
+                toast.success("Historial guardado", {
+                  description: "La historia clínica ha sido actualizada correctamente."
+                });
                 onClose();
               }} 
               className="flex items-center gap-2 bg-primary hover:bg-surface-tint text-on-primary font-label-md py-2.5 px-6 rounded-lg shadow-sm transition-colors cursor-pointer"

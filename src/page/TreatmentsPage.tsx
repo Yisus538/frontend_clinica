@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 import { StatCard } from "../shared/components/StatCard";
 import { TreatmentCatalogTable } from "../features/treatments/components/TreatmentCatalogTable";
 import { TREATMENTS_MOCK, TREATMENTS_STATS } from "../features/treatments/data/treatments.mock";
@@ -10,13 +11,17 @@ export const TreatmentsPage = () => {
   const [treatments, setTreatments] = useState<Treatment[]>(TREATMENTS_MOCK);
 
   const handleToggleStatus = (target: Treatment) => {
+    const newStatus = target.status === "Activo" ? "Inactivo" : "Activo";
     setTreatments((prev) =>
       prev.map((t) =>
         t.id === target.id
-          ? { ...t, status: t.status === "Activo" ? "Inactivo" : "Activo" }
+          ? { ...t, status: newStatus }
           : t
       )
     );
+    toast.info(`Tratamiento marcado como ${newStatus.toLowerCase()}`, {
+      description: target.name
+    });
   };
 
   const handleEdit = (_treatment: Treatment) => {
