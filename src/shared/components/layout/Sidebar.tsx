@@ -6,7 +6,7 @@ const NAV_ITEMS = [
   { icon: "calendar_month", label: "Agenda", href: "/dashboard/agenda" },
   { icon: "group", label: "Pacientes", href: "/dashboard/pacientes" },
   { icon: "dentistry", label: "Tratamientos", href: "/dashboard/tratamientos" },
-  { icon: "payments", label: "Finanzas", href: "/finances" },
+  { icon: "payments", label: "Finanzas", href: "/dashboard/finanzas" },
 ];
 
 const BOTTOM_ITEMS = [
