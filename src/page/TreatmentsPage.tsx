@@ -13,18 +13,14 @@ export const TreatmentsPage = () => {
   const handleToggleStatus = (target: Treatment) => {
     const newStatus = target.status === "Activo" ? "Inactivo" : "Activo";
     setTreatments((prev) =>
-      prev.map((t) =>
-        t.id === target.id
-          ? { ...t, status: newStatus }
-          : t
-      )
+      prev.map((t) => (t.id === target.id ? { ...t, status: newStatus } : t))
     );
     toast.info(`Tratamiento marcado como ${newStatus.toLowerCase()}`, {
-      description: target.name
+      description: target.name,
     });
   };
 
-  const handleEdit = (_treatment: Treatment) => {
+  const handleEdit = () => {
     // TODO: open edit modal/drawer
   };
 
@@ -43,9 +39,7 @@ export const TreatmentsPage = () => {
         </div>
         <div className="flex gap-3">
           <button className="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer">
-            <span className="material-symbols-outlined text-outline text-[20px]">
-              filter_list
-            </span>
+            <span className="material-symbols-outlined text-outline text-[20px]">filter_list</span>
             Filtrar
           </button>
           <button

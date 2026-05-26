@@ -23,7 +23,7 @@ function getWeekDays(baseDate: Date): WeekDay[] {
   for (let i = 0; i < 7; i++) {
     const d = new Date(startOfWeek);
     d.setDate(d.getDate() + i);
-    
+
     days.push({
       abbr: abbrs[i],
       number: d.getDate(),
@@ -43,19 +43,22 @@ export const AgendaPage = () => {
   const currentWeekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
   // Formato del encabezado, ej: "Abril 2026"
-  const monthYear = currentDate.toLocaleDateString("es-AR", {
-    month: "long",
-    year: "numeric"
-  }).replace(/^\w/, c => c.toUpperCase());
+  const monthYear = currentDate
+    .toLocaleDateString("es-AR", {
+      month: "long",
+      year: "numeric",
+    })
+    .replace(/^\w/, (c) => c.toUpperCase());
 
   // Determinar qué días mostrar basado en la vista
-  const daysToRender = viewMode === "day"
-    ? currentWeekDays.filter((_, i) => {
-        // Find which day of the week corresponds to currentDate
-        const currentDayIndex = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1;
-        return i === currentDayIndex;
-      })
-    : currentWeekDays;
+  const daysToRender =
+    viewMode === "day"
+      ? currentWeekDays.filter((_, i) => {
+          // Find which day of the week corresponds to currentDate
+          const currentDayIndex = currentDate.getDay() === 0 ? 6 : currentDate.getDay() - 1;
+          return i === currentDayIndex;
+        })
+      : currentWeekDays;
 
   // Navegación
   const handlePrev = () => {
@@ -78,18 +81,25 @@ export const AgendaPage = () => {
     setCurrentDate(new Date());
   };
 
-  const handleAppointmentMove = (id: string, newDayIndex: number, newStartHour: number, newStartMinute: number) => {
-    setAppointments(prev => prev.map(apt => {
-      if (apt.id === id) {
-        return {
-          ...apt,
-          dayIndex: newDayIndex,
-          startHour: newStartHour,
-          startMinute: newStartMinute
-        };
-      }
-      return apt;
-    }));
+  const handleAppointmentMove = (
+    id: string,
+    newDayIndex: number,
+    newStartHour: number,
+    newStartMinute: number
+  ) => {
+    setAppointments((prev) =>
+      prev.map((apt) => {
+        if (apt.id === id) {
+          return {
+            ...apt,
+            dayIndex: newDayIndex,
+            startHour: newStartHour,
+            startMinute: newStartMinute,
+          };
+        }
+        return apt;
+      })
+    );
     toast.success("Cita reprogramada");
   };
 
@@ -98,12 +108,10 @@ export const AgendaPage = () => {
   };
 
   const handleSaveAppointment = (updated: Appointment) => {
-    setAppointments((prev) =>
-      prev.map((a) => (a.id === updated.id ? updated : a))
-    );
+    setAppointments((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
     setSelectedAppointment(null);
     toast.success("Cita actualizada", {
-      description: `Los cambios para la cita de ${updated.patient} se guardaron correctamente.`
+      description: `Los cambios para la cita de ${updated.patient} se guardaron correctamente.`,
     });
   };
 
@@ -121,10 +129,7 @@ export const AgendaPage = () => {
 
       {/* Calendar Grid */}
       {viewMode === "month" ? (
-        <CalendarMonthGrid 
-          currentDate={currentDate} 
-          appointments={appointments} 
-        />
+        <CalendarMonthGrid currentDate={currentDate} appointments={appointments} />
       ) : (
         <CalendarGrid
           days={daysToRender.length > 0 ? daysToRender : [currentWeekDays[0]]}
@@ -137,7 +142,7 @@ export const AgendaPage = () => {
       )}
 
       {/* Mobile FAB */}
-      <Link 
+      <Link
         to="/dashboard/agenda/nueva-cita"
         className="sm:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:bg-primary-hover transition-colors z-50 cursor-pointer"
       >
@@ -151,6 +156,7 @@ export const AgendaPage = () => {
 
       {/* Edit Appointment Modal */}
       <AppointmentEditModal
+        key={selectedAppointment?.id ?? "closed"}
         isOpen={selectedAppointment !== null}
         appointment={selectedAppointment}
         onClose={() => setSelectedAppointment(null)}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Modal } from "../../../shared/components/Modal";
 import type { Appointment, AppointmentStatus } from "../types/agenda.types";
 import { TREATMENTS_MOCK } from "../../treatments/data/treatments.mock";
@@ -12,20 +12,17 @@ const STATUS_OPTIONS: {
   {
     value: "Confirmada",
     icon: "check_circle",
-    activeClass:
-      "border-secondary bg-secondary/10 text-secondary",
+    activeClass: "border-secondary bg-secondary/10 text-secondary",
   },
   {
     value: "Pendiente",
     icon: "pending",
-    activeClass:
-      "border-primary bg-primary/10 text-primary",
+    activeClass: "border-primary bg-primary/10 text-primary",
   },
   {
     value: "Cancelada",
     icon: "cancel",
-    activeClass:
-      "border-error bg-error/10 text-error",
+    activeClass: "border-error bg-error/10 text-error",
   },
 ];
 
@@ -53,21 +50,10 @@ export const AppointmentEditModal = ({
   onClose,
   onSave,
 }: AppointmentEditModalProps) => {
-  /* Local form state — initialised from the selected appointment */
-  const [patient, setPatient] = useState("");
-  const [treatment, setTreatment] = useState("");
-  const [timeRange, setTimeRange] = useState("");
-  const [status, setStatus] = useState<AppointmentStatus>("Pendiente");
-
-  /* Sync state whenever the modal opens with a new appointment */
-  useEffect(() => {
-    if (appointment) {
-      setPatient(appointment.patient);
-      setTreatment(appointment.treatment);
-      setTimeRange(formatTimeRange(appointment));
-      setStatus(appointment.status ?? "Pendiente");
-    }
-  }, [appointment]);
+  const [patient, setPatient] = useState(appointment?.patient ?? "");
+  const [treatment, setTreatment] = useState(appointment?.treatment ?? "");
+  const [timeRange, setTimeRange] = useState(appointment ? formatTimeRange(appointment) : "");
+  const [status, setStatus] = useState<AppointmentStatus>(appointment?.status ?? "Pendiente");
 
   if (!appointment) return null;
 
@@ -99,22 +85,11 @@ export const AppointmentEditModal = ({
   );
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Editar Cita"
-      footer={footer}
-    >
-      <form
-        id="appointment-edit-form"
-        onSubmit={handleSubmit}
-        className="p-6 flex flex-col gap-5"
-      >
+    <Modal isOpen={isOpen} onClose={onClose} title="Editar Cita" footer={footer}>
+      <form id="appointment-edit-form" onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
         {/* Patient */}
         <div className="flex flex-col gap-1.5">
-          <label className="font-label-md text-label-md text-on-surface-variant">
-            Paciente
-          </label>
+          <label className="font-label-md text-label-md text-on-surface-variant">Paciente</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl pointer-events-none">
               search
@@ -160,9 +135,7 @@ export const AppointmentEditModal = ({
         {/* Date & Time — read-only display; date editing goes through the calendar */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="font-label-md text-label-md text-on-surface-variant">
-              Horario
-            </label>
+            <label className="font-label-md text-label-md text-on-surface-variant">Horario</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl pointer-events-none">
                 schedule
@@ -176,9 +149,7 @@ export const AppointmentEditModal = ({
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <label className="font-label-md text-label-md text-on-surface-variant">
-              Duración
-            </label>
+            <label className="font-label-md text-label-md text-on-surface-variant">Duración</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl pointer-events-none">
                 timer
@@ -229,9 +200,7 @@ export const AppointmentEditModal = ({
                       : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {opt.icon}
-                  </span>
+                  <span className="material-symbols-outlined text-[18px]">{opt.icon}</span>
                   {opt.value}
                 </button>
               );
