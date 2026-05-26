@@ -1,17 +1,35 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
-import { PATIENTS } from "../features/dashboard/data/dashboard.mock";
+import { patientsApi, toPatientRecord } from "../features/patients/api/patients.api";
+import { appointmentsApi } from "../features/agenda/api/appointments.api";
+import type { PatientRecord } from "../features/patients/types/patients.types";
 
 export const NewAppointmentPage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<typeof PATIENTS[0] | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(null);
+  const [patients, setPatients] = useState<PatientRecord[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [form, setForm] = useState({
+    dentistId: "",
+    scheduledDate: "",
+    scheduledTime: "09:00",
+    durationMinutes: "30",
+    notes: "",
+  });
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
+  useEffect(() => {
+    patientsApi
+      .findAll()
+      .then((data) => setPatients(data.map(toPatientRecord)))
+      .catch(() => setPatients([]));
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -22,12 +40,11 @@ export const NewAppointmentPage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredPatients = PATIENTS.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    p.id.includes(searchQuery)
+  const filteredPatients = patients.filter(
+    (p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.dni.includes(searchQuery)
   );
 
-  const handleSelectPatient = (patient: typeof PATIENTS[0]) => {
+  const handleSelectPatient = (patient: PatientRecord) => {
     setSelectedPatient(patient);
     setSearchQuery(patient.name);
     setIsDropdownOpen(false);
@@ -37,6 +54,42 @@ export const NewAppointmentPage = () => {
     setSelectedPatient(null);
     setSearchQuery("");
     setIsDropdownOpen(true);
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient) {
+      toast.error("Seleccioná un paciente.");
+      return;
+    }
+    if (!form.dentistId) {
+      toast.error("Ingresá el ID del odontólogo.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const scheduledAt = new Date(`${form.scheduledDate}T${form.scheduledTime}:00`);
+      await appointmentsApi.create({
+        patientId: selectedPatient.id,
+        dentistId: form.dentistId,
+        scheduledAt: scheduledAt.toISOString(),
+        durationMinutes: parseInt(form.durationMinutes, 10),
+        status: "pending",
+        notes: form.notes || undefined,
+      });
+      toast.success("Cita agendada correctamente");
+      navigate("/dashboard/agenda");
+    } catch {
+      toast.error("Error al agendar la cita. Verificá los datos e intentá nuevamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -49,11 +102,7 @@ export const NewAppointmentPage = () => {
       </div>
 
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-8">
-        <form onSubmit={(e) => { 
-          e.preventDefault(); 
-          toast.success("Cita agendada correctamente");
-          navigate(-1); 
-        }}>
+        <form onSubmit={handleSubmit}>
           {/* Section 1: Patient Info */}
           <div className="mb-10">
             <h3 className="font-h3 text-h3 text-on-surface border-b border-outline-variant pb-2 mb-6 flex items-center gap-2">
@@ -66,10 +115,12 @@ export const NewAppointmentPage = () => {
                   Buscar Paciente
                 </label>
                 <div className="relative" ref={dropdownRef}>
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
-                  <input 
-                    className="w-full pl-10 pr-10 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface" 
-                    placeholder="Nombre, DNI o Teléfono" 
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">
+                    search
+                  </span>
+                  <input
+                    className="w-full pl-10 pr-10 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                    placeholder="Nombre o DNI"
                     type="text"
                     value={searchQuery}
                     onChange={(e) => {
@@ -80,7 +131,7 @@ export const NewAppointmentPage = () => {
                     onFocus={() => setIsDropdownOpen(true)}
                   />
                   {searchQuery && (
-                    <button 
+                    <button
                       type="button"
                       onClick={handleClearSelection}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface cursor-pointer flex items-center justify-center"
@@ -88,50 +139,43 @@ export const NewAppointmentPage = () => {
                       <span className="material-symbols-outlined text-[18px]">close</span>
                     </button>
                   )}
-
                   {isDropdownOpen && (
                     <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 overflow-hidden max-h-60 overflow-y-auto">
                       {filteredPatients.length > 0 ? (
-                        <>
-                          <div className="py-1">
-                            {filteredPatients.map(p => (
-                              <div 
-                                key={p.id} 
-                                onClick={() => handleSelectPatient(p)}
-                                className="px-4 py-3 hover:bg-surface-container-low cursor-pointer flex items-center gap-3 transition-colors"
-                              >
-                                <div className="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-xs font-semibold text-on-surface-variant">
-                                  {p.initials}
+                        <div className="py-1">
+                          {filteredPatients.map((p) => (
+                            <div
+                              key={p.id}
+                              onClick={() => handleSelectPatient(p)}
+                              className="px-4 py-3 hover:bg-surface-container-low cursor-pointer flex items-center gap-3 transition-colors"
+                            >
+                              <div className="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-xs font-semibold text-on-surface-variant">
+                                {p.initials}
+                              </div>
+                              <div>
+                                <div className="font-body-sm text-body-sm text-on-surface font-medium">
+                                  {p.name}
                                 </div>
-                                <div>
-                                  <div className="font-body-sm text-body-sm text-on-surface font-medium">{p.name}</div>
-                                  <div className="font-caption text-caption text-outline">ID: {p.id}</div>
+                                <div className="font-caption text-caption text-outline">
+                                  DNI: {p.dni}
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                          {searchQuery && (
-                            <div className="border-t border-outline-variant py-1 bg-surface-container-lowest sticky bottom-0">
-                               <button 
-                                 type="button" 
-                                 onClick={() => navigate("/dashboard/pacientes/nuevo")}
-                                 className="w-full px-4 py-3 text-left text-primary-container hover:bg-primary-container hover:text-on-primary-container transition-colors font-body-sm text-body-sm font-medium flex items-center gap-2 cursor-pointer"
-                               >
-                                 <span className="material-symbols-outlined text-[18px]">person_add</span>
-                                 Registrar "{searchQuery}" como nuevo
-                               </button>
                             </div>
-                          )}
-                        </>
+                          ))}
+                        </div>
                       ) : (
                         <div className="p-6 text-center">
-                          <p className="font-body-sm text-body-sm text-on-surface-variant mb-3">No se encontraron pacientes.</p>
-                          <button 
-                            type="button" 
+                          <p className="font-body-sm text-body-sm text-on-surface-variant mb-3">
+                            No se encontraron pacientes.
+                          </p>
+                          <button
+                            type="button"
                             onClick={() => navigate("/dashboard/pacientes/nuevo")}
                             className="px-4 py-2.5 bg-primary-container text-on-primary-container rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary transition-colors inline-flex items-center gap-2 cursor-pointer shadow-sm"
                           >
-                            <span className="material-symbols-outlined text-[18px]">person_add</span>
+                            <span className="material-symbols-outlined text-[18px]">
+                              person_add
+                            </span>
                             Registrar nuevo paciente
                           </button>
                         </div>
@@ -142,64 +186,76 @@ export const NewAppointmentPage = () => {
               </div>
               <div>
                 <label className="block font-label-md text-label-md text-on-surface mb-2">
-                  Seleccionar Odontólogo
+                  ID del Odontólogo
                 </label>
-                <div className="relative">
-                  <select defaultValue="" className="w-full pl-4 pr-10 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface appearance-none">
-                    <option disabled value="">Seleccione un especialista...</option>
-                    <option value="1">Dra. Elena Martínez (Ortodoncia)</option>
-                    <option value="2">Dr. Carlos Ruiz (General)</option>
-                    <option value="3">Dra. Sofía Gómez (Pediatría)</option>
-                  </select>
-                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">arrow_drop_down</span>
-                </div>
+                <input
+                  name="dentistId"
+                  value={form.dentistId}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                  placeholder="UUID del odontólogo"
+                  required
+                />
               </div>
             </div>
           </div>
 
-          {/* Section 2: Treatment & Schedule */}
+          {/* Section 2: Schedule */}
           <div className="mb-10">
             <h3 className="font-h3 text-h3 text-on-surface border-b border-outline-variant pb-2 mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary-container">medical_services</span>
-              Tratamiento y Horario
+              <span className="material-symbols-outlined text-primary-container">
+                medical_services
+              </span>
+              Horario
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
-              <div className="md:col-span-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+              <div>
                 <label className="block font-label-md text-label-md text-on-surface mb-2">
-                  Seleccionar Tratamiento
+                  Fecha
                 </label>
                 <div className="relative">
-                  <select defaultValue="" className="w-full pl-4 pr-10 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface appearance-none">
-                    <option disabled value="">Seleccione el tipo de consulta...</option>
-                    <option value="limpieza">Limpieza Dental</option>
-                    <option value="ortodoncia">Control de Ortodoncia</option>
-                    <option value="extraccion">Extracción</option>
-                    <option value="revision">Revisión General</option>
-                    <option value="blanqueamiento">Blanqueamiento</option>
-                  </select>
-                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">arrow_drop_down</span>
-                </div>
-              </div>
-              <div className="md:col-span-6">
-                <label className="block font-label-md text-label-md text-on-surface mb-2">Fecha</label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">calendar_today</span>
-                  <input 
-                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface" 
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">
+                    calendar_today
+                  </span>
+                  <input
+                    name="scheduledDate"
+                    value={form.scheduledDate}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface"
                     type="date"
+                    required
                   />
                 </div>
               </div>
-              <div className="md:col-span-6">
-                <label className="block font-label-md text-label-md text-on-surface mb-2">Hora</label>
-                <div className="grid grid-cols-4 gap-2">
-                  <button className="py-2 px-1 border border-outline-variant rounded-md font-body-sm text-body-sm text-on-surface-variant hover:border-primary-container hover:text-primary-container transition-colors cursor-pointer" type="button">09:00</button>
-                  <button className="py-2 px-1 border border-outline-variant rounded-md font-body-sm text-body-sm text-on-surface-variant hover:border-primary-container hover:text-primary-container transition-colors cursor-pointer" type="button">09:30</button>
-                  <button className="py-2 px-1 border border-primary-container bg-primary-fixed text-primary-container rounded-md font-body-sm text-body-sm font-medium transition-colors cursor-pointer" type="button">10:00</button>
-                  <button className="py-2 px-1 border border-outline-variant rounded-md font-body-sm text-body-sm text-outline bg-surface-container-low cursor-not-allowed opacity-50" disabled type="button">10:30</button>
-                  <button className="py-2 px-1 border border-outline-variant rounded-md font-body-sm text-body-sm text-on-surface-variant hover:border-primary-container hover:text-primary-container transition-colors cursor-pointer" type="button">11:00</button>
-                  <button className="py-2 px-1 border border-outline-variant rounded-md font-body-sm text-body-sm text-on-surface-variant hover:border-primary-container hover:text-primary-container transition-colors cursor-pointer" type="button">11:30</button>
-                </div>
+              <div>
+                <label className="block font-label-md text-label-md text-on-surface mb-2">
+                  Hora
+                </label>
+                <input
+                  name="scheduledTime"
+                  value={form.scheduledTime}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container outline-none transition-all font-body-sm text-body-sm text-on-surface"
+                  type="time"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block font-label-md text-label-md text-on-surface mb-2">
+                  Duración (min)
+                </label>
+                <select
+                  name="durationMinutes"
+                  value={form.durationMinutes}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container outline-none transition-all font-body-sm text-body-sm text-on-surface appearance-none"
+                >
+                  <option value="15">15 min</option>
+                  <option value="30">30 min</option>
+                  <option value="45">45 min</option>
+                  <option value="60">60 min</option>
+                  <option value="90">90 min</option>
+                </select>
               </div>
             </div>
           </div>
@@ -207,29 +263,33 @@ export const NewAppointmentPage = () => {
           {/* Section 3: Notes */}
           <div className="mb-10">
             <label className="block font-label-md text-label-md text-on-surface mb-2">
-              Notas/Observaciones
+              Notas / Motivo de consulta
             </label>
-            <textarea 
-              className="w-full p-4 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface resize-none" 
-              placeholder="Añade cualquier detalle relevante para la consulta..." 
+            <textarea
+              name="notes"
+              value={form.notes}
+              onChange={handleChange}
+              className="w-full p-4 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface resize-none"
+              placeholder="Añade cualquier detalle relevante para la consulta..."
               rows={3}
-            ></textarea>
+            />
           </div>
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant">
-            <button 
+            <button
               onClick={() => navigate(-1)}
-              className="px-6 py-3 rounded-lg font-label-md text-label-md text-error hover:bg-error-container transition-colors cursor-pointer" 
+              className="px-6 py-3 rounded-lg font-label-md text-label-md text-error hover:bg-error-container transition-colors cursor-pointer"
               type="button"
             >
               Cancelar
             </button>
-            <button 
-              className="px-6 py-3 rounded-lg font-label-md text-label-md bg-primary-container text-on-primary-container hover:bg-primary transition-colors shadow-sm cursor-pointer" 
+            <button
               type="submit"
+              disabled={isSubmitting}
+              className="px-6 py-3 rounded-lg font-label-md text-label-md bg-primary-container text-on-primary-container hover:bg-primary transition-colors shadow-sm cursor-pointer disabled:opacity-50"
             >
-              Confirmar Cita
+              {isSubmitting ? "Agendando..." : "Confirmar Cita"}
             </button>
           </div>
         </form>

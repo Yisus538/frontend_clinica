@@ -1,30 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { StatCard } from "../shared/components/StatCard";
 import { TreatmentCatalogTable } from "../features/treatments/components/TreatmentCatalogTable";
-import { TREATMENTS_MOCK, TREATMENTS_STATS } from "../features/treatments/data/treatments.mock";
+import { treatmentsApi, toTreatment } from "../features/treatments/api/treatments.api";
+import { TREATMENTS_STATS } from "../features/treatments/data/treatments.mock";
 import type { Treatment } from "../features/treatments/types/treatments.types";
 
 export const TreatmentsPage = () => {
   const navigate = useNavigate();
-  const [treatments, setTreatments] = useState<Treatment[]>(TREATMENTS_MOCK);
+  const [treatments, setTreatments] = useState<Treatment[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    treatmentsApi
+      .findAll()
+      .then((data) => setTreatments(data.map(toTreatment)))
+      .catch(() => setTreatments([]))
+      .finally(() => setIsLoading(false));
+  }, []);
 
   const handleToggleStatus = (target: Treatment) => {
-    const newStatus = target.status === "Activo" ? "Inactivo" : "Activo";
-    setTreatments((prev) =>
-      prev.map((t) =>
-        t.id === target.id
-          ? { ...t, status: newStatus }
-          : t
-      )
-    );
-    toast.info(`Tratamiento marcado como ${newStatus.toLowerCase()}`, {
-      description: target.name
-    });
+    const newIsActive = target.status !== "Activo";
+    treatmentsApi
+      .update(target.id, { isActive: newIsActive })
+      .then((updated) => {
+        setTreatments((prev) => prev.map((t) => (t.id === target.id ? toTreatment(updated) : t)));
+        toast.info(`Tratamiento marcado como ${newIsActive ? "activo" : "inactivo"}`, {
+          description: target.name,
+        });
+      })
+      .catch(() => toast.error("No se pudo actualizar el estado del tratamiento."));
   };
 
-  const handleEdit = (_treatment: Treatment) => {
+  const handleEdit = () => {
     // TODO: open edit modal/drawer
   };
 
@@ -43,9 +52,7 @@ export const TreatmentsPage = () => {
         </div>
         <div className="flex gap-3">
           <button className="flex items-center gap-2 px-4 py-2 bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface font-label-md text-label-md hover:bg-surface-container-low transition-colors cursor-pointer">
-            <span className="material-symbols-outlined text-outline text-[20px]">
-              filter_list
-            </span>
+            <span className="material-symbols-outlined text-outline text-[20px]">filter_list</span>
             Filtrar
           </button>
           <button
@@ -63,7 +70,7 @@ export const TreatmentsPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard
           label="Total de Servicios"
-          value={TREATMENTS_STATS.total}
+          value={treatments.length || TREATMENTS_STATS.total}
           icon="medical_services"
           accentClass="text-primary"
           orbClass="bg-primary-fixed-dim"
@@ -85,11 +92,19 @@ export const TreatmentsPage = () => {
       </div>
 
       {/* Catalog Table */}
-      <TreatmentCatalogTable
-        treatments={treatments}
-        onEdit={handleEdit}
-        onToggleStatus={handleToggleStatus}
-      />
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <span className="material-symbols-outlined animate-spin text-primary text-4xl">
+            progress_activity
+          </span>
+        </div>
+      ) : (
+        <TreatmentCatalogTable
+          treatments={treatments}
+          onEdit={handleEdit}
+          onToggleStatus={handleToggleStatus}
+        />
+      )}
     </div>
   );
 };

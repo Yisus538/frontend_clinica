@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { useForm } from "../../../shared/hooks/useForm";
+import { useAuth } from "../context/AuthContext";
+import { ApiError } from "../../../shared/api/client";
 import type { LoginFormData, LoginFormErrors } from "../types/auth.types";
 
 const INITIAL_VALUES: LoginFormData = {
@@ -27,20 +29,36 @@ function validate(data: LoginFormData): LoginFormErrors {
 
 export function useLoginForm() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const form = useForm<LoginFormData>({
     initialValues: INITIAL_VALUES,
     validate,
-    onSubmit: async (_data) => {
-      // TODO: integrar con API de autenticación
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success("Sesión iniciada correctamente");
-      navigate("/dashboard");
+    onSubmit: async (data) => {
+      setApiError(null);
+      try {
+        await login(data.email, data.password);
+        toast.success("Sesión iniciada correctamente");
+        navigate("/dashboard");
+      } catch (err) {
+        if (err instanceof ApiError && err.status === 401) {
+          setApiError("Credenciales incorrectas. Verificá tu correo y contraseña.");
+        } else {
+          toast.error("Error al iniciar sesión. Intentá nuevamente.");
+        }
+        throw err;
+      }
     },
   });
 
   const toggleShowPassword = () => setShowPassword((prev) => !prev);
 
-  return { ...form, showPassword, toggleShowPassword };
+  return {
+    ...form,
+    showPassword,
+    toggleShowPassword,
+    errors: { ...form.errors, ...(apiError ? { email: apiError } : {}) },
+  };
 }
