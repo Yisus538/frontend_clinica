@@ -3,16 +3,22 @@ import { renderHook, act } from "@testing-library/react";
 import { useLoginForm } from "../useLoginForm";
 
 const mockNavigate = vi.fn();
+const mockLogin = vi.fn().mockResolvedValue(undefined);
+
 vi.mock("react-router", () => ({
   useNavigate: () => mockNavigate,
 }));
 vi.mock("sonner", () => ({
-  toast: { success: vi.fn() },
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+vi.mock("../../context/AuthContext", () => ({
+  useAuth: () => ({ login: mockLogin }),
 }));
 
 describe("useLoginForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockLogin.mockResolvedValue(undefined);
   });
 
   it("inicializa con valores por defecto", () => {
