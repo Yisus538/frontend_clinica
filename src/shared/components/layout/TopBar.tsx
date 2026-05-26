@@ -1,10 +1,21 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
 import type { TopBarProps } from "../../../features/dashboard/types/dashboard.types";
 import { SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED } from "./Sidebar";
-import { MOCK_USER_PROFILE } from "../../../features/settings/data/settings.mock";
+import { useAuth } from "../../../features/auth/context/AuthContext";
 
 export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const sidebarWidth = sidebarExpanded ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED;
+
+  const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : "U";
+
+  const handleLogout = async () => {
+    await logout();
+    toast.success("Sesión cerrada correctamente.");
+    navigate("/");
+  };
 
   return (
     <header
@@ -57,13 +68,22 @@ export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
 
         <div className="h-8 w-px bg-outline-variant mx-2 hidden sm:block" />
 
-        {/* Profile */}
-        <div className="flex items-center gap-2 cursor-pointer" id="profile-menu">
-          <img
-            src={MOCK_USER_PROFILE.avatarUrl}
-            alt={`Perfil de ${MOCK_USER_PROFILE.fullName}`}
-            className="w-8 h-8 rounded-full object-cover border border-outline-variant"
-          />
+        {/* Profile + logout */}
+        <div className="flex items-center gap-3" id="profile-menu">
+          <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-sm font-bold text-xs border border-outline-variant">
+            {initials}
+          </div>
+          <span className="hidden md:block text-body-sm text-on-surface font-medium">
+            {user ? `${user.firstName} ${user.lastName}` : ""}
+          </span>
+          <button
+            onClick={handleLogout}
+            className="hover:text-error transition-colors cursor-pointer active:opacity-70 text-on-surface-variant"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            <span className="material-symbols-outlined text-[22px]">logout</span>
+          </button>
         </div>
       </div>
     </header>

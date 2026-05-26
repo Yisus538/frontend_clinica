@@ -1,10 +1,24 @@
 import { useState } from "react";
-import { Outlet } from "react-router";
+import { Navigate, Outlet } from "react-router";
 import { Sidebar, SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { useAuth } from "../../../features/auth/context/AuthContext";
 
 export const DashboardLayout = () => {
+  const { user, isLoading } = useAuth();
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <span className="material-symbols-outlined animate-spin text-primary text-4xl">
+          progress_activity
+        </span>
+      </div>
+    );
+  }
+
+  if (!user) return <Navigate to="/" replace />;
 
   const toggleSidebar = () => setSidebarExpanded((prev) => !prev);
   const sidebarWidth = sidebarExpanded ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED;
