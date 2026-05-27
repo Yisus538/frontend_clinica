@@ -73,6 +73,27 @@ export const SettingsPage = () => {
     setForm((prev) => prev && { ...prev, [name]: value });
   };
 
+  const handleLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, "");
+    setForm((prev) => prev && { ...prev, licenseNumber: digits });
+  };
+
+  const handleLicenseFocus = () => {
+    setForm((prev) => {
+      if (!prev) return prev;
+      return { ...prev, licenseNumber: prev.licenseNumber.replace(/^[A-Za-z]+-/, "") };
+    });
+  };
+
+  const handleLicenseBlur = () => {
+    setForm((prev) => {
+      if (!prev) return prev;
+      const digits = prev.licenseNumber.trim();
+      if (!digits) return prev;
+      return { ...prev, licenseNumber: `MP-${digits}` };
+    });
+  };
+
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
   };
@@ -274,8 +295,11 @@ export const SettingsPage = () => {
                 <input
                   name="licenseNumber"
                   value={form.licenseNumber}
-                  onChange={handleChange}
-                  placeholder="Ej: MP-12345"
+                  onChange={handleLicenseChange}
+                  onFocus={handleLicenseFocus}
+                  onBlur={handleLicenseBlur}
+                  placeholder="Ej: 12345"
+                  inputMode="numeric"
                   className={`h-12 px-3 border rounded outline-none transition-all font-body-md text-on-surface ${
                     !profile?.licenseNumber
                       ? "border-error/60 bg-error-container/10 focus:border-error focus:ring-2 focus:ring-error/20"
