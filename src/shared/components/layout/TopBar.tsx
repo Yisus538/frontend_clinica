@@ -9,7 +9,9 @@ export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
   const navigate = useNavigate();
   const sidebarWidth = sidebarExpanded ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED;
 
-  const initials = user ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase() : "U";
+  const initials = user
+    ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"
+    : "U";
 
   const handleLogout = async () => {
     await logout();
