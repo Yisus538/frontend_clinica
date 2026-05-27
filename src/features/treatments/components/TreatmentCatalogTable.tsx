@@ -14,7 +14,7 @@ const CATEGORY_STYLES: Record<TreatmentCategory, string> = {
 };
 
 const formatPrice = (price: number) =>
-  new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD" }).format(price);
+  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(price);
 
 const formatDuration = (minutes: number | null): string =>
   minutes === null ? "N/A" : `${minutes} min`;
