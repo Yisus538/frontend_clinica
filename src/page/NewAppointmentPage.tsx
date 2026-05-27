@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { patientsApi, toPatientRecord } from "../features/patients/api/patients.api";
 import { appointmentsApi } from "../features/agenda/api/appointments.api";
 import { settingsApi } from "../features/settings/api/settings.api";
+import { treatmentsApi, type ApiTreatment } from "../features/treatments/api/treatments.api";
 import type { PatientRecord } from "../features/patients/types/patients.types";
 
 interface PatientRouteState {
@@ -18,6 +19,8 @@ interface FieldErrors {
   time?: string;
 }
 
+const DURATION_OPTIONS = [15, 30, 45, 60, 90];
+
 function buildInitials(name: string): string {
   return name
     .split(/\s+/)
@@ -25,6 +28,14 @@ function buildInitials(name: string): string {
     .join("")
     .toUpperCase()
     .slice(0, 2);
+}
+
+function closestDuration(minutes: number): string {
+  return String(
+    DURATION_OPTIONS.reduce((prev, curr) =>
+      Math.abs(curr - minutes) < Math.abs(prev - minutes) ? curr : prev
+    )
+  );
 }
 
 const inputBase =
@@ -36,6 +47,7 @@ export const NewAppointmentPage = () => {
   const navigate = useNavigate();
   const { state } = useLocation() as { state: PatientRouteState | null };
 
+  // ── Patient ──────────────────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState<string>(() => state?.patientName ?? "");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(() => {
@@ -50,28 +62,44 @@ export const NewAppointmentPage = () => {
     };
   });
   const [patients, setPatients] = useState<PatientRecord[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // ── Treatment ─────────────────────────────────────────────────────────────
+  const [treatments, setTreatments] = useState<ApiTreatment[]>([]);
+  const [treatmentSearch, setTreatmentSearch] = useState("");
+  const [selectedTreatment, setSelectedTreatment] = useState<ApiTreatment | null>(null);
+  const [isTreatmentDropdownOpen, setIsTreatmentDropdownOpen] = useState(false);
+  const treatmentDropdownRef = useRef<HTMLDivElement>(null);
+
+  // ── Dentist ───────────────────────────────────────────────────────────────
   const [dentistId, setDentistId] = useState("");
   const [dentistName, setDentistName] = useState("");
   const [dentistLoading, setDentistLoading] = useState(true);
   const [dentistError, setDentistError] = useState(false);
 
+  // ── Form ──────────────────────────────────────────────────────────────────
   const [form, setForm] = useState({
     scheduledDate: "",
     scheduledTime: "09:00",
     durationMinutes: "30",
     notes: "",
   });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
+  // ── Load data ─────────────────────────────────────────────────────────────
   useEffect(() => {
     patientsApi
       .findAll()
       .then((data) => setPatients(data.map(toPatientRecord)))
       .catch(() => setPatients([]));
+  }, []);
+
+  useEffect(() => {
+    treatmentsApi
+      .findAll()
+      .then((data) => setTreatments(data.filter((t) => t.isActive)))
+      .catch(() => setTreatments([]));
   }, []);
 
   useEffect(() => {
@@ -93,16 +121,24 @@ export const NewAppointmentPage = () => {
       .finally(() => setDentistLoading(false));
   }, []);
 
+  // ── Close dropdowns on outside click ─────────────────────────────────────
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsDropdownOpen(false);
+      }
+      if (
+        treatmentDropdownRef.current &&
+        !treatmentDropdownRef.current.contains(e.target as Node)
+      ) {
+        setIsTreatmentDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // ── Patient handlers ──────────────────────────────────────────────────────
   const filteredPatients = patients.filter(
     (p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.dni.includes(searchQuery)
   );
@@ -114,12 +150,37 @@ export const NewAppointmentPage = () => {
     setFieldErrors((prev) => ({ ...prev, patient: undefined }));
   };
 
-  const handleClearSelection = () => {
+  const handleClearPatient = () => {
     setSelectedPatient(null);
     setSearchQuery("");
     setIsDropdownOpen(true);
   };
 
+  // ── Treatment handlers ────────────────────────────────────────────────────
+  const filteredTreatments = treatments.filter((t) =>
+    t.name.toLowerCase().includes(treatmentSearch.toLowerCase())
+  );
+
+  const handleSelectTreatment = (treatment: ApiTreatment) => {
+    setSelectedTreatment(treatment);
+    setTreatmentSearch(treatment.name);
+    setIsTreatmentDropdownOpen(false);
+    if (treatment.estimatedDurationMinutes) {
+      setForm((prev) => ({
+        ...prev,
+        durationMinutes: closestDuration(treatment.estimatedDurationMinutes),
+        notes: prev.notes || treatment.name,
+      }));
+    }
+  };
+
+  const handleClearTreatment = () => {
+    setSelectedTreatment(null);
+    setTreatmentSearch("");
+    setIsTreatmentDropdownOpen(true);
+  };
+
+  // ── Form handlers ─────────────────────────────────────────────────────────
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
@@ -137,16 +198,9 @@ export const NewAppointmentPage = () => {
     e.preventDefault();
 
     const errors: FieldErrors = {};
-
-    if (!selectedPatient) {
-      errors.patient = "Seleccioná un paciente para continuar.";
-    }
-    if (!form.scheduledDate) {
-      errors.date = "Elegí una fecha para la cita.";
-    }
-    if (!form.scheduledTime) {
-      errors.time = "Ingresá la hora de la cita.";
-    }
+    if (!selectedPatient) errors.patient = "Seleccioná un paciente para continuar.";
+    if (!form.scheduledDate) errors.date = "Elegí una fecha para la cita.";
+    if (!form.scheduledTime) errors.time = "Ingresá la hora de la cita.";
 
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -200,7 +254,7 @@ export const NewAppointmentPage = () => {
 
       <div className="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm p-8">
         <form onSubmit={handleSubmit} noValidate>
-          {/* Section 1: Patient Info */}
+          {/* ── Section 1: Paciente ─────────────────────────────────────── */}
           <div className="mb-10">
             <h3 className="font-h3 text-h3 text-on-surface border-b border-outline-variant pb-2 mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary-container">person</span>
@@ -227,23 +281,22 @@ export const NewAppointmentPage = () => {
                       setSearchQuery(e.target.value);
                       if (selectedPatient) setSelectedPatient(null);
                       setIsDropdownOpen(true);
-                      if (fieldErrors.patient) {
+                      if (fieldErrors.patient)
                         setFieldErrors((prev) => ({ ...prev, patient: undefined }));
-                      }
                     }}
                     onFocus={() => setIsDropdownOpen(true)}
                   />
                   {searchQuery && (
                     <button
                       type="button"
-                      onClick={handleClearSelection}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface cursor-pointer flex items-center justify-center"
+                      onClick={handleClearPatient}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-[18px]">close</span>
                     </button>
                   )}
                   {isDropdownOpen && !selectedPatient && (
-                    <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 overflow-hidden max-h-60 overflow-y-auto">
+                    <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
                       {filteredPatients.length > 0 ? (
                         <div className="py-1">
                           {filteredPatients.map((p) => (
@@ -306,7 +359,7 @@ export const NewAppointmentPage = () => {
                 ) : null}
               </div>
 
-              {/* Dentist (read-only) */}
+              {/* Dentist */}
               <div>
                 <label className="block font-label-md text-label-md text-on-surface mb-2">
                   Odontólogo
@@ -341,7 +394,131 @@ export const NewAppointmentPage = () => {
             </div>
           </div>
 
-          {/* Section 2: Schedule */}
+          {/* ── Section 2: Tratamiento ──────────────────────────────────── */}
+          <div className="mb-10">
+            <h3 className="font-h3 text-h3 text-on-surface border-b border-outline-variant pb-2 mb-6 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary-container">
+                medical_services
+              </span>
+              Tratamiento
+              <span className="font-caption text-caption text-on-surface-variant font-normal ml-1">
+                (opcional)
+              </span>
+            </h3>
+
+            <div className="max-w-md">
+              <label className="block font-label-md text-label-md text-on-surface mb-2">
+                Buscar Tratamiento
+              </label>
+              <div className="relative" ref={treatmentDropdownRef}>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-outline">
+                  search
+                </span>
+                <input
+                  className={`${inputNormal} pl-10 pr-10`}
+                  placeholder="Nombre del tratamiento..."
+                  type="text"
+                  value={treatmentSearch}
+                  onChange={(e) => {
+                    setTreatmentSearch(e.target.value);
+                    if (selectedTreatment) setSelectedTreatment(null);
+                    setIsTreatmentDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsTreatmentDropdownOpen(true)}
+                />
+                {treatmentSearch && (
+                  <button
+                    type="button"
+                    onClick={handleClearTreatment}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                )}
+
+                {isTreatmentDropdownOpen && !selectedTreatment && (
+                  <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                    {treatments.length === 0 ? (
+                      <div className="p-6 text-center">
+                        <p className="font-body-sm text-body-sm text-on-surface-variant mb-3">
+                          No hay tratamientos registrados.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => navigate("/dashboard/tratamientos/nuevo")}
+                          className="px-4 py-2.5 bg-primary-container text-on-primary-container rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary transition-colors inline-flex items-center gap-2 cursor-pointer shadow-sm"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                          Agregar tratamiento
+                        </button>
+                      </div>
+                    ) : filteredTreatments.length > 0 ? (
+                      <div className="py-1">
+                        {filteredTreatments.map((t) => (
+                          <div
+                            key={t.id}
+                            onClick={() => handleSelectTreatment(t)}
+                            className="px-4 py-3 hover:bg-surface-container-low cursor-pointer flex items-center justify-between gap-3 transition-colors"
+                          >
+                            <div>
+                              <div className="font-body-sm text-body-sm text-on-surface font-medium">
+                                {t.name}
+                              </div>
+                              <div className="font-caption text-caption text-outline">
+                                {t.category}
+                              </div>
+                            </div>
+                            {t.estimatedDurationMinutes > 0 && (
+                              <span className="shrink-0 px-2 py-0.5 bg-secondary-container/40 text-secondary rounded-full font-caption text-caption">
+                                {t.estimatedDurationMinutes} min
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-6 text-center">
+                        <p className="font-body-sm text-body-sm text-on-surface-variant mb-3">
+                          No se encontró ese tratamiento.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => navigate("/dashboard/tratamientos/nuevo")}
+                          className="px-4 py-2.5 bg-primary-container text-on-primary-container rounded-lg font-body-sm text-body-sm font-medium hover:bg-primary transition-colors inline-flex items-center gap-2 cursor-pointer shadow-sm"
+                        >
+                          <span className="material-symbols-outlined text-[18px]">add_circle</span>
+                          Agregar tratamiento
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {selectedTreatment && (
+                <div className="mt-2 flex items-center justify-between gap-2 px-3 py-1.5 bg-secondary-container/20 border border-secondary/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[16px] text-secondary">
+                      check_circle
+                    </span>
+                    <span className="font-body-sm text-body-sm text-secondary font-medium">
+                      {selectedTreatment.name}
+                    </span>
+                    <span className="font-caption text-caption text-on-surface-variant">
+                      · {selectedTreatment.category}
+                    </span>
+                  </div>
+                  {selectedTreatment.estimatedDurationMinutes > 0 && (
+                    <span className="shrink-0 px-2 py-0.5 bg-secondary-container/50 text-secondary rounded-full font-caption text-caption">
+                      {selectedTreatment.estimatedDurationMinutes} min
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Section 3: Horario ──────────────────────────────────────── */}
           <div className="mb-10">
             <h3 className="font-h3 text-h3 text-on-surface border-b border-outline-variant pb-2 mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary-container">
@@ -401,6 +578,11 @@ export const NewAppointmentPage = () => {
               <div>
                 <label className="block font-label-md text-label-md text-on-surface mb-2">
                   Duración (min)
+                  {selectedTreatment?.estimatedDurationMinutes && (
+                    <span className="ml-2 font-caption text-caption text-secondary">
+                      · auto-completado
+                    </span>
+                  )}
                 </label>
                 <select
                   name="durationMinutes"
@@ -408,17 +590,17 @@ export const NewAppointmentPage = () => {
                   onChange={handleChange}
                   className={`${inputNormal} px-4 appearance-none`}
                 >
-                  <option value="15">15 min</option>
-                  <option value="30">30 min</option>
-                  <option value="45">45 min</option>
-                  <option value="60">60 min</option>
-                  <option value="90">90 min</option>
+                  {DURATION_OPTIONS.map((d) => (
+                    <option key={d} value={d}>
+                      {d} min
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
           </div>
 
-          {/* Section 3: Notes */}
+          {/* ── Section 4: Notas ────────────────────────────────────────── */}
           <div className="mb-10">
             <label className="block font-label-md text-label-md text-on-surface mb-2">
               Notas / Motivo de consulta
@@ -433,7 +615,7 @@ export const NewAppointmentPage = () => {
             />
           </div>
 
-          {/* Actions */}
+          {/* ── Actions ─────────────────────────────────────────────────── */}
           <div className="flex items-center justify-end gap-4 pt-6 border-t border-outline-variant">
             <button
               onClick={() => navigate(-1)}
