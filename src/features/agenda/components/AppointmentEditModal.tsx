@@ -17,6 +17,11 @@ const STATUS_OPTIONS: {
   activeClass: string;
 }[] = [
   {
+    value: "Completada",
+    icon: "task_alt",
+    activeClass: "border-tertiary bg-tertiary/10 text-tertiary",
+  },
+  {
     value: "Confirmada",
     icon: "check_circle",
     activeClass: "border-secondary bg-secondary/10 text-secondary",
@@ -47,6 +52,7 @@ interface AppointmentEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (updated: Appointment) => void;
+  onRegisterPayment?: (appointment: Appointment) => void;
 }
 
 export const AppointmentEditModal = ({
@@ -54,6 +60,7 @@ export const AppointmentEditModal = ({
   isOpen,
   onClose,
   onSave,
+  onRegisterPayment,
 }: AppointmentEditModalProps) => {
   const [patient, setPatient] = useState(appointment?.patient ?? "");
   const [selectedTreatmentName, setSelectedTreatmentName] = useState(
@@ -96,21 +103,41 @@ export const AppointmentEditModal = ({
   };
 
   const footer = (
-    <div className="flex gap-3">
-      <button
-        type="button"
-        onClick={onClose}
-        className="flex-1 py-2.5 px-4 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
-      >
-        Cancelar
-      </button>
-      <button
-        form="appointment-edit-form"
-        type="submit"
-        className="flex-1 py-2.5 px-4 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer"
-      >
-        Guardar Cambios
-      </button>
+    <div className="flex flex-col gap-2">
+      {status === "Completada" && onRegisterPayment && appointment && (
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            onRegisterPayment({
+              ...appointment,
+              status,
+              treatment: selectedTreatmentName || "Consulta",
+              durationMinutes: parseInt(durationMinutes, 10),
+            });
+          }}
+          className="w-full py-2.5 px-4 bg-secondary text-on-secondary font-label-md text-label-md rounded-lg hover:opacity-90 transition-opacity shadow-sm cursor-pointer flex items-center justify-center gap-2"
+        >
+          <span className="material-symbols-outlined text-[18px]">payments</span>
+          Registrar Cobro
+        </button>
+      )}
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 py-2.5 px-4 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          form="appointment-edit-form"
+          type="submit"
+          className="flex-1 py-2.5 px-4 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer"
+        >
+          Guardar Cambios
+        </button>
+      </div>
     </div>
   );
 

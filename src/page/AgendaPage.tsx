@@ -8,8 +8,10 @@ import { AppointmentEditModal } from "../features/agenda/components/AppointmentE
 import {
   appointmentsApi,
   toAppointment,
+  REVERSE_STATUS_MAP,
   type ApiAppointment,
 } from "../features/agenda/api/appointments.api";
+import { RegisterPaymentModal } from "../features/finances/components/RegisterPaymentModal";
 import type { Appointment, ViewMode, WeekDay } from "../features/agenda/types/agenda.types";
 
 /* ── Helpers ── */
@@ -43,6 +45,7 @@ export const AgendaPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [apiAppointments, setApiAppointments] = useState<ApiAppointment[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [paymentAppointment, setPaymentAppointment] = useState<Appointment | null>(null);
 
   const currentWeekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
@@ -134,6 +137,7 @@ export const AgendaPage = () => {
       .update(updated.id, {
         notes: updated.treatment !== "Consulta" ? updated.treatment : undefined,
         durationMinutes: updated.durationMinutes,
+        status: updated.status ? REVERSE_STATUS_MAP[updated.status] : undefined,
       })
       .then((saved) => {
         setApiAppointments((prev) => prev.map((a) => (a.id === saved.id ? saved : a)));
@@ -143,6 +147,11 @@ export const AgendaPage = () => {
         });
       })
       .catch(() => toast.error("No se pudo guardar la cita."));
+  };
+
+  const handleRegisterPayment = (apt: Appointment) => {
+    setSelectedAppointment(null);
+    setPaymentAppointment(apt);
   };
 
   return (
@@ -191,7 +200,22 @@ export const AgendaPage = () => {
         appointment={selectedAppointment}
         onClose={() => setSelectedAppointment(null)}
         onSave={handleSaveAppointment}
+        onRegisterPayment={handleRegisterPayment}
       />
+
+      {/* Register Payment Modal */}
+      {paymentAppointment && (
+        <RegisterPaymentModal
+          key={paymentAppointment.id}
+          mode="new"
+          isOpen={paymentAppointment !== null}
+          appointmentId={paymentAppointment.id}
+          patientId={paymentAppointment.patientId ?? ""}
+          treatmentName={paymentAppointment.treatment}
+          onClose={() => setPaymentAppointment(null)}
+          onSuccess={() => setPaymentAppointment(null)}
+        />
+      )}
     </div>
   );
 };

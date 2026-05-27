@@ -2,7 +2,12 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { FinanceMetricCard } from "../features/finances/components/FinanceMetricCard";
 import { TransactionsTable } from "../features/finances/components/TransactionsTable";
-import { financesApi, toTransaction, type ApiInvoice } from "../features/finances/api/finances.api";
+import {
+  financesApi,
+  toTransaction,
+  getPaidAmount,
+  type ApiInvoice,
+} from "../features/finances/api/finances.api";
 import type { Transaction } from "../features/finances/types/finances.types";
 
 export const FinancesPage = () => {
@@ -28,16 +33,14 @@ export const FinancesPage = () => {
     toast.info("Función de registro de ingresos/gastos en desarrollo");
   };
 
-  const totalIngresos = invoices
-    .filter((inv) => inv.status === "paid")
-    .reduce((sum, inv) => sum + Number(inv.total), 0);
+  const totalIngresos = invoices.reduce((sum, inv) => sum + getPaidAmount(inv), 0);
 
   const totalPendiente = invoices
     .filter(
       (inv) =>
         inv.status === "issued" || inv.status === "partially_paid" || inv.status === "overdue"
     )
-    .reduce((sum, inv) => sum + Number(inv.total), 0);
+    .reduce((sum, inv) => sum + Math.max(0, Number(inv.total) - getPaidAmount(inv)), 0);
 
   const balanceNeto = totalIngresos - totalPendiente;
 

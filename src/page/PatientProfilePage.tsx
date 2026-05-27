@@ -2,8 +2,33 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router";
 import { toast } from "sonner";
 import { ClinicalHistoryModal } from "../features/patients/components/clinical-history/ClinicalHistoryModal";
+import { RegisterPaymentModal } from "../features/finances/components/RegisterPaymentModal";
 import { patientsApi, type ApiPatient } from "../features/patients/api/patients.api";
+import {
+  financesApi,
+  getPaidAmount,
+  type ApiInvoice,
+  type BackendInvoiceStatus,
+} from "../features/finances/api/finances.api";
 import { formatDate } from "../shared/utils/date";
+
+const INVOICE_STATUS_LABEL: Record<BackendInvoiceStatus, string> = {
+  draft: "Borrador",
+  issued: "Pendiente",
+  paid: "Pagado",
+  partially_paid: "Parcial",
+  cancelled: "Cancelado",
+  overdue: "Vencido",
+};
+
+const INVOICE_STATUS_CLASS: Record<BackendInvoiceStatus, string> = {
+  draft: "bg-surface-container text-on-surface-variant",
+  issued: "bg-primary-container text-on-primary-container",
+  paid: "bg-secondary-container text-on-secondary-container",
+  partially_paid: "bg-tertiary-container text-on-tertiary-container",
+  cancelled: "bg-surface-container text-on-surface-variant",
+  overdue: "bg-error-container text-on-error-container",
+};
 
 const STATUS_LABEL: Record<ApiPatient["status"], string> = {
   active: "Activo",
@@ -56,6 +81,8 @@ export const PatientProfilePage = () => {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [form, setForm] = useState<PatientForm | null>(null);
   const [isClinicalHistoryModalOpen, setIsClinicalHistoryModalOpen] = useState(false);
+  const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
+  const [paymentInvoice, setPaymentInvoice] = useState<ApiInvoice | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -67,6 +94,18 @@ export const PatientProfilePage = () => {
       })
       .catch(() => setPatient(null))
       .finally(() => setIsLoading(false));
+  }, [id]);
+
+  const loadInvoices = () => {
+    if (!id) return;
+    financesApi
+      .findInvoicesByPatient(id)
+      .then(setInvoices)
+      .catch(() => setInvoices([]));
+  };
+
+  useEffect(() => {
+    loadInvoices();
   }, [id]);
 
   if (isLoading) {
@@ -515,6 +554,103 @@ export const PatientProfilePage = () => {
               </div>
             </div>
           </div>
+          {/* Payment History */}
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-6 pb-3 border-b border-outline-variant">
+              <h3 className="font-h3 text-h3 text-on-surface">Historial de Pagos</h3>
+              {invoices.some(
+                (inv) => inv.status === "issued" || inv.status === "partially_paid"
+              ) && (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm">
+                  <span className="material-symbols-outlined text-[14px]">warning</span>
+                  Deuda pendiente
+                </span>
+              )}
+            </div>
+
+            {invoices.length === 0 ? (
+              <div className="flex flex-col items-center py-8 gap-2 text-on-surface-variant">
+                <span className="material-symbols-outlined text-4xl">receipt_long</span>
+                <p className="font-body-sm text-body-sm">Sin comprobantes registrados</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {invoices.map((inv) => {
+                  const paid = getPaidAmount(inv);
+                  const remaining = Math.max(0, Number(inv.total) - paid);
+                  const treatment = inv.appointment?.notes ?? "Consulta";
+                  const canPay = inv.status === "issued" || inv.status === "partially_paid";
+                  return (
+                    <div
+                      key={inv.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-3 rounded-lg bg-surface-container border border-outline-variant"
+                    >
+                      <div className="flex flex-col gap-0.5 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full font-label-sm text-label-sm ${INVOICE_STATUS_CLASS[inv.status]}`}
+                          >
+                            {INVOICE_STATUS_LABEL[inv.status]}
+                          </span>
+                          <span className="font-caption text-caption text-on-surface-variant truncate">
+                            {inv.number}
+                          </span>
+                        </div>
+                        <p className="font-body-md text-body-md text-on-surface font-medium truncate">
+                          {treatment}
+                        </p>
+                        <p className="font-caption text-caption text-on-surface-variant">
+                          {formatDate(inv.createdAt, {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-4 shrink-0">
+                        <div className="text-right">
+                          {remaining > 0 ? (
+                            <>
+                              <p className="font-body-md text-body-md text-error font-semibold">
+                                Falta $
+                                {remaining.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                              </p>
+                              <p className="font-caption text-caption text-on-surface-variant">
+                                Total $
+                                {Number(inv.total).toLocaleString("es-AR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p className="font-body-md text-body-md text-secondary font-semibold">
+                                $
+                                {Number(inv.total).toLocaleString("es-AR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </p>
+                              <p className="font-caption text-caption text-secondary">Pagado ✓</p>
+                            </>
+                          )}
+                        </div>
+                        {canPay && (
+                          <button
+                            onClick={() => setPaymentInvoice(inv)}
+                            className="h-9 px-3 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm flex items-center gap-1.5 hover:opacity-90 transition-opacity cursor-pointer shrink-0"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">payments</span>
+                            Abonar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -522,6 +658,20 @@ export const PatientProfilePage = () => {
         isOpen={isClinicalHistoryModalOpen}
         onClose={() => setIsClinicalHistoryModalOpen(false)}
       />
+
+      {paymentInvoice && (
+        <RegisterPaymentModal
+          key={paymentInvoice.id}
+          mode="existing"
+          isOpen={paymentInvoice !== null}
+          invoice={paymentInvoice}
+          onClose={() => setPaymentInvoice(null)}
+          onSuccess={() => {
+            setPaymentInvoice(null);
+            loadInvoices();
+          }}
+        />
+      )}
     </div>
   );
 };
