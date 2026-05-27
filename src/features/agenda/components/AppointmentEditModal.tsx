@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal } from "../../../shared/components/Modal";
 import type { Appointment, AppointmentStatus } from "../types/agenda.types";
-import { TREATMENTS_MOCK } from "../../treatments/data/treatments.mock";
+import { treatmentsApi, type ApiTreatment } from "../../treatments/api/treatments.api";
 
-/* ── Status button config ── */
+const DURATION_OPTIONS = [15, 30, 45, 60, 90];
+
+function closestDuration(minutes: number): number {
+  return DURATION_OPTIONS.reduce((prev, curr) =>
+    Math.abs(curr - minutes) < Math.abs(prev - minutes) ? curr : prev
+  );
+}
+
 const STATUS_OPTIONS: {
   value: AppointmentStatus;
   icon: string;
@@ -26,7 +33,6 @@ const STATUS_OPTIONS: {
   },
 ];
 
-/* ── Helpers ── */
 const fmt2 = (n: number) => String(n).padStart(2, "0");
 
 const formatTimeRange = (apt: Appointment): string => {
@@ -36,7 +42,6 @@ const formatTimeRange = (apt: Appointment): string => {
   return `${fmt2(apt.startHour)}:${fmt2(apt.startMinute)} - ${fmt2(endH)}:${fmt2(endM)}`;
 };
 
-/* ── Props ── */
 interface AppointmentEditModalProps {
   appointment: Appointment | null;
   isOpen: boolean;
@@ -51,20 +56,45 @@ export const AppointmentEditModal = ({
   onSave,
 }: AppointmentEditModalProps) => {
   const [patient, setPatient] = useState(appointment?.patient ?? "");
-  const [treatment, setTreatment] = useState(appointment?.treatment ?? "");
-  const [timeRange, setTimeRange] = useState(appointment ? formatTimeRange(appointment) : "");
+  const [selectedTreatmentName, setSelectedTreatmentName] = useState(
+    appointment?.treatment !== "Consulta" ? (appointment?.treatment ?? "") : ""
+  );
+  const [durationMinutes, setDurationMinutes] = useState(
+    String(appointment?.durationMinutes ?? 30)
+  );
+  const [timeRange] = useState(appointment ? formatTimeRange(appointment) : "");
   const [status, setStatus] = useState<AppointmentStatus>(appointment?.status ?? "Pendiente");
+  const [treatments, setTreatments] = useState<ApiTreatment[]>([]);
+
+  useEffect(() => {
+    treatmentsApi
+      .findAll()
+      .then((data) => setTreatments(data.filter((t) => t.isActive)))
+      .catch(() => setTreatments([]));
+  }, []);
 
   if (!appointment) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({ ...appointment, patient, treatment, status });
-    // Note: onSave already calls setSelectedAppointment(null) in AgendaPage,
-    // which unmounts this modal — no explicit onClose() needed here.
+  const handleTreatmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const name = e.target.value;
+    setSelectedTreatmentName(name);
+    const found = treatments.find((t) => t.name === name);
+    if (found?.estimatedDurationMinutes) {
+      setDurationMinutes(String(closestDuration(found.estimatedDurationMinutes)));
+    }
   };
 
-  /* ── Footer ── */
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      ...appointment,
+      patient,
+      treatment: selectedTreatmentName || "Consulta",
+      status,
+      durationMinutes: parseInt(durationMinutes, 10),
+    });
+  };
+
   const footer = (
     <div className="flex gap-3">
       <button
@@ -95,7 +125,6 @@ export const AppointmentEditModal = ({
               search
             </span>
             <input
-              id="edit-patient"
               type="text"
               value={patient}
               onChange={(e) => setPatient(e.target.value)}
@@ -105,34 +134,38 @@ export const AppointmentEditModal = ({
           </div>
         </div>
 
-        {/* Treatment */}
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="edit-treatment"
-            className="font-label-md text-label-md text-on-surface-variant"
-          >
-            Tratamiento
-          </label>
-          <div className="relative">
-            <select
-              id="edit-treatment"
-              value={treatment}
-              onChange={(e) => setTreatment(e.target.value)}
-              className="w-full appearance-none px-4 py-3 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+        {/* Treatment — solo si hay tratamientos cargados */}
+        {treatments.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="edit-treatment"
+              className="font-label-md text-label-md text-on-surface-variant"
             >
-              {TREATMENTS_MOCK.filter((t) => t.status === "Activo").map((t) => (
-                <option key={t.id} value={t.name}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">
-              arrow_drop_down
-            </span>
+              Tratamiento
+            </label>
+            <div className="relative">
+              <select
+                id="edit-treatment"
+                value={selectedTreatmentName}
+                onChange={handleTreatmentChange}
+                className="w-full appearance-none px-4 py-3 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+              >
+                <option value="">Sin tratamiento</option>
+                {treatments.map((t) => (
+                  <option key={t.id} value={t.name}>
+                    {t.name}
+                    {t.estimatedDurationMinutes ? ` — ${t.estimatedDurationMinutes} min` : ""}
+                  </option>
+                ))}
+              </select>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">
+                arrow_drop_down
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Date & Time — read-only display; date editing goes through the calendar */}
+        {/* Horario + Duración */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
             <label className="font-label-md text-label-md text-on-surface-variant">Horario</label>
@@ -142,29 +175,41 @@ export const AppointmentEditModal = ({
               </span>
               <input
                 type="text"
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-              />
-            </div>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="font-label-md text-label-md text-on-surface-variant">Duración</label>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl pointer-events-none">
-                timer
-              </span>
-              <input
-                type="text"
                 readOnly
-                value={`${appointment.durationMinutes} min`}
+                value={timeRange}
                 className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface-variant cursor-default"
               />
             </div>
           </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="font-label-md text-label-md text-on-surface-variant">
+              Duración
+              {selectedTreatmentName && (
+                <span className="ml-1 font-caption text-caption text-secondary">
+                  · auto-completado
+                </span>
+              )}
+            </label>
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl pointer-events-none">
+                timer
+              </span>
+              <select
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer appearance-none"
+              >
+                {DURATION_OPTIONS.map((d) => (
+                  <option key={d} value={d}>
+                    {d} min
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
-        {/* Doctor (read-only if present) */}
+        {/* Profesional (read-only) */}
         {appointment.doctor && (
           <div className="flex flex-col gap-1.5">
             <label className="font-label-md text-label-md text-on-surface-variant">
@@ -181,7 +226,7 @@ export const AppointmentEditModal = ({
           </div>
         )}
 
-        {/* Status selector */}
+        {/* Estado */}
         <div className="flex flex-col gap-1.5">
           <label className="font-label-md text-label-md text-on-surface-variant">
             Estado de la Cita

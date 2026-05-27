@@ -132,7 +132,8 @@ export const AgendaPage = () => {
     if (!original) return;
     appointmentsApi
       .update(updated.id, {
-        notes: updated.treatment,
+        notes: updated.treatment !== "Consulta" ? updated.treatment : undefined,
+        durationMinutes: updated.durationMinutes,
       })
       .then((saved) => {
         setApiAppointments((prev) => prev.map((a) => (a.id === saved.id ? saved : a)));
