@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { settingsApi, type ProfileResponse } from "../features/settings/api/settings.api";
+import { useProfile } from "../features/settings/context/ProfileContext";
 
 const STATUS_LABEL: Record<string, string> = {
   active: "Activo",
@@ -27,6 +28,7 @@ function splitFullName(fullName: string): { firstName: string; lastName: string 
 
 interface FormState {
   fullName: string;
+  licenseNumber: string;
   specialty: string;
   email: string;
   bio: string;
@@ -37,6 +39,7 @@ interface FormState {
 function profileToForm(p: ProfileResponse): FormState {
   return {
     fullName: `${p.firstName} ${p.lastName}`.trim(),
+    licenseNumber: p.licenseNumber ?? "",
     specialty: p.specialty ?? "",
     email: p.email,
     bio: p.bio ?? "",
@@ -46,6 +49,7 @@ function profileToForm(p: ProfileResponse): FormState {
 }
 
 export const SettingsPage = () => {
+  const { refresh: refreshGlobalProfile } = useProfile();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -101,11 +105,13 @@ export const SettingsPage = () => {
       const updated = await settingsApi.updateProfile({
         firstName,
         lastName,
+        licenseNumber: form.licenseNumber || undefined,
         specialty: form.specialty,
         bio: form.bio,
       });
       setProfile(updated);
       setForm(profileToForm(updated));
+      await refreshGlobalProfile();
       toast.success("Configuración guardada", {
         description: "Tu información de perfil ha sido actualizada.",
       });
@@ -257,6 +263,32 @@ export const SettingsPage = () => {
                   className="h-12 px-3 border border-outline-variant rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface"
                   type="text"
                 />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-label-md text-label-md text-on-surface">
+                  Matrícula Profesional{" "}
+                  {!profile?.licenseNumber && (
+                    <span className="text-error font-label-sm">* Requerida</span>
+                  )}
+                </label>
+                <input
+                  name="licenseNumber"
+                  value={form.licenseNumber}
+                  onChange={handleChange}
+                  placeholder="Ej: MP-12345"
+                  className={`h-12 px-3 border rounded outline-none transition-all font-body-md text-on-surface ${
+                    !profile?.licenseNumber
+                      ? "border-error/60 bg-error-container/10 focus:border-error focus:ring-2 focus:ring-error/20"
+                      : "border-outline-variant bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  }`}
+                  type="text"
+                />
+                {!profile?.licenseNumber && (
+                  <p className="flex items-center gap-1 font-caption text-caption text-error">
+                    <span className="material-symbols-outlined text-[13px]">error</span>
+                    Ingresá tu matrícula para poder usar el sistema completo.
+                  </p>
+                )}
               </div>
               <div className="flex flex-col gap-1">
                 <label className="font-label-md text-label-md text-on-surface">Especialidad</label>

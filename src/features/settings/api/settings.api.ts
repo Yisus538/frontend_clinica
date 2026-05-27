@@ -17,6 +17,7 @@ export interface ProfileResponse {
 export interface UpdateProfilePayload {
   firstName?: string;
   lastName?: string;
+  licenseNumber?: string;
   specialty?: string;
   bio?: string;
 }
