@@ -41,8 +41,6 @@ export function useForm<T extends Record<string, unknown>>({
     setIsLoading(true);
     try {
       await onSubmit(formData);
-    } catch (error) {
-      console.error(error);
     } finally {
       setIsLoading(false);
     }
