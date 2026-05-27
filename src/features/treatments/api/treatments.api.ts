@@ -53,7 +53,7 @@ const CATEGORY_REVERSE: Record<TreatmentCategory, BackendCategory> = {
   Estética: "aesthetics",
 };
 
-export { CATEGORY_REVERSE };
+export { CATEGORY_REVERSE, CATEGORY_MAP };
 
 export function toTreatment(t: ApiTreatment): Treatment {
   return {

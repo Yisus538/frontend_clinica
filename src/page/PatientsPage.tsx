@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { PatientDirectoryTable } from "../features/patients/components/PatientDirectoryTable";
 import { patientsApi, toPatientRecord } from "../features/patients/api/patients.api";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import type { PatientRecord } from "../features/patients/types/patients.types";
 
 export const PatientsPage = () => {
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q")?.toLowerCase() ?? "";
 
   useEffect(() => {
     patientsApi
@@ -15,6 +17,10 @@ export const PatientsPage = () => {
       .catch(() => setPatients([]))
       .finally(() => setIsLoading(false));
   }, []);
+
+  const filteredPatients = q
+    ? patients.filter((p) => p.name.toLowerCase().includes(q) || p.dni.toLowerCase().includes(q))
+    : patients;
 
   const activeCount = patients.filter((p) => p.status === "Activo").length;
 
@@ -101,7 +107,7 @@ export const PatientsPage = () => {
           </span>
         </div>
       ) : (
-        <PatientDirectoryTable patients={patients} />
+        <PatientDirectoryTable patients={filteredPatients} />
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import { apiClient } from "../../../shared/api/client";
 import type { Transaction, TransactionStatus, TransactionMethod } from "../types/finances.types";
+import { formatDate } from "../../../shared/utils/date";
 
 type BackendInvoiceStatus =
   | "draft"
@@ -9,15 +10,19 @@ type BackendInvoiceStatus =
   | "cancelled"
   | "overdue";
 
-interface ApiPaymentMethod {
+export interface ApiPaymentMethod {
   id: string;
   name: string;
+  requiresReference: boolean;
+  isActive: boolean;
 }
 
-interface ApiPayment {
+interface ApiPaymentRecord {
   id: string;
   amount: number;
   status: string;
+  paidAt: string | null;
+  reference: string | null;
   paymentMethod?: ApiPaymentMethod;
 }
 
@@ -46,7 +51,7 @@ export interface ApiInvoice {
   createdAt: string;
   patient?: ApiPatientRef;
   appointment?: ApiAppointmentRef;
-  payments?: ApiPayment[];
+  payments?: ApiPaymentRecord[];
 }
 
 const STATUS_MAP: Record<BackendInvoiceStatus, TransactionStatus> = {
@@ -75,23 +80,59 @@ export function toTransaction(inv: ApiInvoice): Transaction {
   const treatment = inv.appointment?.notes ?? "—";
   const method = resolveMethod(inv.payments?.[0]?.paymentMethod?.name);
   const dateStr = inv.dueDate ?? inv.createdAt;
-  const date = new Date(dateStr).toLocaleDateString("es-AR", {
+  const date = formatDate(dateStr, {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+
+  const paid = getPaidAmount(inv);
+  const remaining = Math.max(0, Number(inv.total) - paid);
+  const amount =
+    inv.status === "paid" || inv.status === "cancelled" ? Number(inv.total) : remaining;
 
   return {
     id: inv.number,
     date,
     patient: patientName,
     treatment,
-    amount: Number(inv.total),
+    amount,
     method,
     status: STATUS_MAP[inv.status],
   };
 }
 
+export function getPaidAmount(inv: ApiInvoice): number {
+  return (inv.payments ?? [])
+    .filter((p) => p.status === "approved")
+    .reduce((sum, p) => sum + Number(p.amount), 0);
+}
+
+export type { BackendInvoiceStatus };
+
+export interface CreateInvoicePayload {
+  appointmentId: string;
+  patientId: string;
+  subtotal: number;
+  total: number;
+  taxAmount?: number;
+  insuranceCoverage?: number;
+  dueDate?: string;
+}
+
+export interface RegisterPaymentPayload {
+  methodId: string;
+  amount: number;
+  reference?: string;
+}
+
 export const financesApi = {
   findAllInvoices: () => apiClient.get<ApiInvoice[]>("/finances/invoices"),
+  findInvoicesByPatient: (patientId: string) =>
+    apiClient.get<ApiInvoice[]>(`/finances/invoices/patient/${patientId}`),
+  createInvoice: (payload: CreateInvoicePayload) =>
+    apiClient.post<ApiInvoice>("/finances/invoices", payload),
+  registerPayment: (invoiceId: string, payload: RegisterPaymentPayload) =>
+    apiClient.post<{ id: string }>(`/finances/invoices/${invoiceId}/payments`, payload),
+  findPaymentMethods: () => apiClient.get<ApiPaymentMethod[]>("/finances/payment-methods"),
 };
