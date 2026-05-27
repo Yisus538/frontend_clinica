@@ -475,6 +475,18 @@ export const NewAppointmentPage = () => {
                             )}
                           </div>
                         ))}
+                        <div className="border-t border-outline-variant mt-1 pt-1 px-2 pb-2">
+                          <button
+                            type="button"
+                            onClick={() => navigate("/dashboard/tratamientos/nuevo")}
+                            className="w-full px-3 py-2 text-left hover:bg-surface-container-low rounded-lg font-body-sm text-body-sm text-primary font-medium transition-colors inline-flex items-center gap-2 cursor-pointer"
+                          >
+                            <span className="material-symbols-outlined text-[18px]">
+                              add_circle
+                            </span>
+                            Agregar nuevo tratamiento
+                          </button>
+                        </div>
                       </div>
                     ) : (
                       <div className="p-6 text-center">
