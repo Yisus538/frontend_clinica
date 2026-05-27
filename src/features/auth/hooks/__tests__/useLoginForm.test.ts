@@ -12,7 +12,9 @@ vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 vi.mock("../../context/AuthContext", () => ({
-  useAuth: () => ({ login: mockLogin }),
+  useAuth: () => ({
+    login: mockLogin,
+  }),
 }));
 
 describe("useLoginForm", () => {
@@ -58,7 +60,7 @@ describe("useLoginForm", () => {
     const { result } = renderHook(() => useLoginForm());
     act(() => {
       result.current.handleChange({
-        target: { name: "email", value: "invalido", type: "text", checked: false },
+        target: { name: "email", value: "no-es-email", type: "text", checked: false },
       } as React.ChangeEvent<HTMLInputElement>);
       result.current.handleChange({
         target: { name: "password", value: "123456", type: "text", checked: false },
@@ -76,10 +78,10 @@ describe("useLoginForm", () => {
     const { result } = renderHook(() => useLoginForm());
     act(() => {
       result.current.handleChange({
-        target: { name: "email", value: "a@b.com", type: "text", checked: false },
+        target: { name: "email", value: "test@example.com", type: "text", checked: false },
       } as React.ChangeEvent<HTMLInputElement>);
       result.current.handleChange({
-        target: { name: "password", value: "12345", type: "text", checked: false },
+        target: { name: "password", value: "abc", type: "text", checked: false },
       } as React.ChangeEvent<HTMLInputElement>);
     });
     await act(async () => {
@@ -91,24 +93,21 @@ describe("useLoginForm", () => {
   });
 
   it("navega al dashboard con credenciales válidas", async () => {
-    vi.useFakeTimers();
     const { result } = renderHook(() => useLoginForm());
     act(() => {
       result.current.handleChange({
-        target: { name: "email", value: "admin@clinica.com", type: "text", checked: false },
+        target: { name: "email", value: "test@example.com", type: "text", checked: false },
       } as React.ChangeEvent<HTMLInputElement>);
       result.current.handleChange({
-        target: { name: "password", value: "admin123", type: "text", checked: false },
+        target: { name: "password", value: "password123", type: "text", checked: false },
       } as React.ChangeEvent<HTMLInputElement>);
     });
     await act(async () => {
-      const submitPromise = result.current.handleSubmit({
+      await result.current.handleSubmit({
         preventDefault: vi.fn(),
       } as unknown as React.FormEvent<HTMLFormElement>);
-      vi.advanceTimersByTime(1500);
-      await submitPromise;
     });
+    expect(mockLogin).toHaveBeenCalledWith("test@example.com", "password123");
     expect(mockNavigate).toHaveBeenCalledWith("/dashboard");
-    vi.useRealTimers();
   });
 });

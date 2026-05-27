@@ -1,20 +1,51 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import { toast } from "sonner";
 import { patientsApi, toPatientRecord } from "../features/patients/api/patients.api";
 import { appointmentsApi } from "../features/agenda/api/appointments.api";
+import { settingsApi } from "../features/settings/api/settings.api";
 import type { PatientRecord } from "../features/patients/types/patients.types";
+
+interface PatientRouteState {
+  patientId?: string;
+  patientName?: string;
+  patientDni?: string;
+}
+
+function buildInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0] ?? "")
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export const NewAppointmentPage = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { state } = useLocation() as { state: PatientRouteState | null };
+
+  const [searchQuery, setSearchQuery] = useState<string>(() => state?.patientName ?? "");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<PatientRecord | null>(() => {
+    if (!state?.patientId) return null;
+    return {
+      id: state.patientId,
+      name: state.patientName ?? "",
+      dni: state.patientDni ?? "",
+      initials: buildInitials(state.patientName ?? ""),
+      lastVisit: "—",
+      status: "Activo",
+    };
+  });
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [dentistId, setDentistId] = useState("");
+  const [dentistName, setDentistName] = useState("");
+  const [dentistLoading, setDentistLoading] = useState(true);
+
   const [form, setForm] = useState({
-    dentistId: "",
     scheduledDate: "",
     scheduledTime: "09:00",
     durationMinutes: "30",
@@ -23,6 +54,7 @@ export const NewAppointmentPage = () => {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Load patient list for search dropdown
   useEffect(() => {
     patientsApi
       .findAll()
@@ -30,6 +62,21 @@ export const NewAppointmentPage = () => {
       .catch(() => setPatients([]));
   }, []);
 
+  // Load logged-in dentist info
+  useEffect(() => {
+    settingsApi
+      .getProfile()
+      .then((p) => {
+        setDentistId(p.dentistId ?? "");
+        setDentistName(`${p.firstName} ${p.lastName}`);
+      })
+      .catch(() => {
+        setDentistName("No disponible");
+      })
+      .finally(() => setDentistLoading(false));
+  }, []);
+
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -68,8 +115,8 @@ export const NewAppointmentPage = () => {
       toast.error("Seleccioná un paciente.");
       return;
     }
-    if (!form.dentistId) {
-      toast.error("Ingresá el ID del odontólogo.");
+    if (!dentistId) {
+      toast.error("No se encontró un odontólogo vinculado a tu cuenta.");
       return;
     }
     setIsSubmitting(true);
@@ -77,7 +124,7 @@ export const NewAppointmentPage = () => {
       const scheduledAt = new Date(`${form.scheduledDate}T${form.scheduledTime}:00`);
       await appointmentsApi.create({
         patientId: selectedPatient.id,
-        dentistId: form.dentistId,
+        dentistId,
         scheduledAt: scheduledAt.toISOString(),
         durationMinutes: parseInt(form.durationMinutes, 10),
         status: "pending",
@@ -110,6 +157,7 @@ export const NewAppointmentPage = () => {
               Información del Paciente
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+              {/* Patient search */}
               <div>
                 <label className="block font-label-md text-label-md text-on-surface mb-2">
                   Buscar Paciente
@@ -139,7 +187,7 @@ export const NewAppointmentPage = () => {
                       <span className="material-symbols-outlined text-[18px]">close</span>
                     </button>
                   )}
-                  {isDropdownOpen && (
+                  {isDropdownOpen && !selectedPatient && (
                     <div className="absolute top-[calc(100%+4px)] left-0 w-full bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 overflow-hidden max-h-60 overflow-y-auto">
                       {filteredPatients.length > 0 ? (
                         <div className="py-1">
@@ -183,19 +231,38 @@ export const NewAppointmentPage = () => {
                     </div>
                   )}
                 </div>
+                {selectedPatient && (
+                  <div className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-primary-fixed/20 border border-primary/20 rounded-lg">
+                    <span className="material-symbols-outlined text-[16px] text-primary">
+                      check_circle
+                    </span>
+                    <span className="font-body-sm text-body-sm text-primary font-medium">
+                      {selectedPatient.name}
+                    </span>
+                    <span className="font-caption text-caption text-on-surface-variant ml-1">
+                      DNI: {selectedPatient.dni}
+                    </span>
+                  </div>
+                )}
               </div>
+
+              {/* Dentist (read-only, logged-in user) */}
               <div>
                 <label className="block font-label-md text-label-md text-on-surface mb-2">
-                  ID del Odontólogo
+                  Odontólogo
                 </label>
-                <input
-                  name="dentistId"
-                  value={form.dentistId}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface focus:border-primary-container focus:ring-2 focus:ring-primary-fixed-dim outline-none transition-all font-body-sm text-body-sm text-on-surface"
-                  placeholder="UUID del odontólogo"
-                  required
-                />
+                <div className="w-full px-4 py-3 rounded-lg border border-outline-variant bg-surface-container font-body-sm text-body-sm text-on-surface flex items-center gap-2 min-h-[50px]">
+                  {dentistLoading ? (
+                    <span className="text-on-surface-variant animate-pulse">Cargando...</span>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[18px] text-primary">
+                        stethoscope
+                      </span>
+                      <span>{dentistName || "Sin odontólogo vinculado"}</span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -286,7 +353,7 @@ export const NewAppointmentPage = () => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || dentistLoading}
               className="px-6 py-3 rounded-lg font-label-md text-label-md bg-primary-container text-on-primary-container hover:bg-primary transition-colors shadow-sm cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? "Agendando..." : "Confirmar Cita"}

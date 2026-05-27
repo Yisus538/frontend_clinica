@@ -1,5 +1,6 @@
 import { apiClient } from "../../../shared/api/client";
 import type { Transaction, TransactionStatus, TransactionMethod } from "../types/finances.types";
+import { formatDate } from "../../../shared/utils/date";
 
 type BackendInvoiceStatus =
   | "draft"
@@ -75,7 +76,7 @@ export function toTransaction(inv: ApiInvoice): Transaction {
   const treatment = inv.appointment?.notes ?? "—";
   const method = resolveMethod(inv.payments?.[0]?.paymentMethod?.name);
   const dateStr = inv.dueDate ?? inv.createdAt;
-  const date = new Date(dateStr).toLocaleDateString("es-AR", {
+  const date = formatDate(dateStr, {
     day: "numeric",
     month: "short",
     year: "numeric",
