@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 import type { AgendaItemData } from "../types/dashboard.types";
 import { EmptyState } from "../../../shared/components/EmptyState";
 
@@ -17,6 +18,8 @@ interface AgendaPanelProps {
 }
 
 export const AgendaPanel = ({ items }: AgendaPanelProps) => {
+  const navigate = useNavigate();
+
   return (
     <section className="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 h-full flex flex-col">
       {/* Header */}
@@ -77,6 +80,7 @@ export const AgendaPanel = ({ items }: AgendaPanelProps) => {
       {/* New Appointment */}
       <button
         id="btn-new-appointment"
+        onClick={() => navigate("/dashboard/agenda/nueva-cita")}
         className="mt-6 w-full bg-primary text-on-primary font-label-md text-label-md h-[40px] rounded flex items-center justify-center gap-2 hover:bg-on-primary-fixed-variant transition-colors cursor-pointer"
       >
         <span className="material-symbols-outlined text-[18px]">add</span>
