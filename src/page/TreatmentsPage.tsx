@@ -33,8 +33,8 @@ export const TreatmentsPage = () => {
       .catch(() => toast.error("No se pudo actualizar el estado del tratamiento."));
   };
 
-  const handleEdit = () => {
-    // TODO: open edit modal/drawer
+  const handleEdit = (target: Treatment) => {
+    navigate(`/dashboard/tratamientos/${target.id}/editar`);
   };
 
   const activeCount = treatments.filter((t) => t.status === "Activo").length;
