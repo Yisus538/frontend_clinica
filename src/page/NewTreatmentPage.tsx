@@ -4,9 +4,17 @@ import { toast } from "sonner";
 import type { TreatmentCategory } from "../features/treatments/types/treatments.types";
 import { treatmentsApi, CATEGORY_REVERSE } from "../features/treatments/api/treatments.api";
 
+interface FieldErrors {
+  name?: string;
+  category?: string;
+  code?: string;
+  price?: string;
+}
+
 export const NewTreatmentPage = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const [name, setName] = useState("");
   const [category, setCategory] = useState<TreatmentCategory | "">("");
@@ -18,7 +26,22 @@ export const NewTreatmentPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !category || !price || !code) return;
+
+    const errors: FieldErrors = {};
+    if (!name.trim()) errors.name = "Ingresá el nombre del tratamiento.";
+    if (!category) errors.category = "Seleccioná una categoría.";
+    if (!code.trim()) errors.code = "Ingresá un código de servicio.";
+    if (!price || Number(price) <= 0) errors.price = "Ingresá un precio mayor a $0.";
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      toast.error("Completá los campos requeridos.", {
+        description: Object.values(errors).join(" "),
+      });
+      return;
+    }
+
+    setFieldErrors({});
     setIsSubmitting(true);
     try {
       const durationMinutes = duration
@@ -27,28 +50,39 @@ export const NewTreatmentPage = () => {
           : Number(duration)
         : undefined;
       await treatmentsApi.create({
-        code,
-        name,
+        code: code.trim(),
+        name: name.trim(),
         category: CATEGORY_REVERSE[category as TreatmentCategory],
         basePrice: Number(price),
         estimatedDurationMinutes: durationMinutes,
-        description: description || undefined,
+        description: description.trim() || undefined,
       });
-      toast.success("Tratamiento guardado correctamente", {
-        description: `El tratamiento ${name} ha sido añadido al catálogo.`,
+      toast.success("Tratamiento guardado correctamente.", {
+        description: `"${name.trim()}" fue añadido al catálogo.`,
       });
       navigate("/dashboard/tratamientos");
     } catch {
-      toast.error("Error al guardar el tratamiento. Verificá los datos e intentá nuevamente.");
+      toast.error("Error al guardar el tratamiento.", {
+        description: "Verificá que el código no esté repetido e intentá nuevamente.",
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const inputClass = (error?: string) =>
+    `w-full h-12 px-3 py-2 border rounded-lg outline-none transition-all text-on-surface placeholder:text-outline ${
+      error
+        ? "border-error bg-error-container/10 focus:border-error focus:ring-2 focus:ring-error/20"
+        : "border-outline-variant bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20"
+    }`;
+
+  const previewPrice = price ? Number(price).toLocaleString("es-AR") : "0";
+
   return (
     <div className="w-full pb-10">
-      <form onSubmit={handleSubmit}>
-        {/* Header Section */}
+      <form onSubmit={handleSubmit} noValidate>
+        {/* Header */}
         <div className="mb-16 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
             <h1 className="font-h1 text-h1 text-on-surface mb-2">Nuevo Tratamiento</h1>
@@ -70,55 +104,80 @@ export const NewTreatmentPage = () => {
               disabled={isSubmitting}
               className="flex-1 sm:flex-none px-6 py-2 bg-primary text-on-primary font-label-md hover:bg-on-primary-fixed-variant transition-colors rounded-lg h-[48px] min-w-[160px] flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-[18px]">save</span>
-              {isSubmitting ? "Guardando..." : "Guardar Tratamiento"}
+              {isSubmitting ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px] animate-spin">
+                    progress_activity
+                  </span>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">save</span>
+                  Guardar Tratamiento
+                </>
+              )}
             </button>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Main Form Section */}
+          {/* Main Form */}
           <div className="col-span-1 lg:col-span-8">
             <div className="bg-surface-container-lowest p-6 border border-outline-variant rounded-xl shadow-sm">
               <div className="space-y-10">
-                {/* Basic Information */}
+                {/* Información Básica */}
                 <section>
                   <h3 className="font-h3 text-h3 text-on-surface mb-6 flex items-center gap-2 border-b border-outline-variant/30 pb-2">
                     <span className="material-symbols-outlined text-primary">info</span>
                     Información Básica
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {/* Nombre */}
                     <div className="sm:col-span-2 flex flex-col gap-1">
                       <label
                         htmlFor="name"
                         className="font-label-md text-label-md text-on-surface-variant mb-1"
                       >
-                        Nombre del Tratamiento
+                        Nombre del Tratamiento <span className="text-error">*</span>
                       </label>
                       <input
                         id="name"
                         value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        required
-                        className="w-full h-12 px-3 py-2 border border-outline-variant rounded-lg bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all placeholder:text-outline text-on-surface"
+                        onChange={(e) => {
+                          setName(e.target.value);
+                          if (fieldErrors.name) setFieldErrors((p) => ({ ...p, name: undefined }));
+                        }}
+                        className={inputClass(fieldErrors.name)}
                         placeholder="Ej. Ortodoncia Invisible"
                         type="text"
                       />
+                      {fieldErrors.name && (
+                        <p className="flex items-center gap-1 font-caption text-caption text-error">
+                          <span className="material-symbols-outlined text-[13px]">error</span>
+                          {fieldErrors.name}
+                        </p>
+                      )}
                     </div>
+
+                    {/* Categoría */}
                     <div className="col-span-1 flex flex-col gap-1">
                       <label
                         htmlFor="category"
                         className="font-label-md text-label-md text-on-surface-variant mb-1"
                       >
-                        Categoría
+                        Categoría <span className="text-error">*</span>
                       </label>
                       <div className="relative">
                         <select
                           id="category"
                           value={category}
-                          onChange={(e) => setCategory(e.target.value as TreatmentCategory)}
-                          required
-                          className="w-full h-12 px-3 py-2 border border-outline-variant rounded-lg bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-on-surface appearance-none cursor-pointer"
+                          onChange={(e) => {
+                            setCategory(e.target.value as TreatmentCategory);
+                            if (fieldErrors.category)
+                              setFieldErrors((p) => ({ ...p, category: undefined }));
+                          }}
+                          className={`${inputClass(fieldErrors.category)} appearance-none cursor-pointer`}
                         >
                           <option value="" disabled>
                             Seleccione una categoría
@@ -134,57 +193,86 @@ export const NewTreatmentPage = () => {
                           arrow_drop_down
                         </span>
                       </div>
+                      {fieldErrors.category && (
+                        <p className="flex items-center gap-1 font-caption text-caption text-error">
+                          <span className="material-symbols-outlined text-[13px]">error</span>
+                          {fieldErrors.category}
+                        </p>
+                      )}
                     </div>
+
+                    {/* Código */}
                     <div className="col-span-1 flex flex-col gap-1">
                       <label
                         htmlFor="code"
                         className="font-label-md text-label-md text-on-surface-variant mb-1"
                       >
-                        Código de Servicio (Interno)
+                        Código de Servicio <span className="text-error">*</span>
                       </label>
                       <input
                         id="code"
                         value={code}
-                        onChange={(e) => setCode(e.target.value)}
-                        className="w-full h-12 px-3 py-2 border border-outline-variant rounded-lg bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-on-surface placeholder:text-outline"
-                        placeholder="TX-000"
+                        onChange={(e) => {
+                          setCode(e.target.value);
+                          if (fieldErrors.code) setFieldErrors((p) => ({ ...p, code: undefined }));
+                        }}
+                        className={inputClass(fieldErrors.code)}
+                        placeholder="TX-001"
                         type="text"
                       />
+                      {fieldErrors.code && (
+                        <p className="flex items-center gap-1 font-caption text-caption text-error">
+                          <span className="material-symbols-outlined text-[13px]">error</span>
+                          {fieldErrors.code}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </section>
 
-                {/* Financial & Logistics */}
+                {/* Costos y Tiempos */}
                 <section className="pt-6 border-t border-outline-variant/30">
                   <h3 className="font-h3 text-h3 text-on-surface mb-6 flex items-center gap-2 border-b border-outline-variant/30 pb-2">
                     <span className="material-symbols-outlined text-primary">payments</span>
                     Costos y Tiempos
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {/* Precio ARS */}
                     <div className="col-span-1 flex flex-col gap-1">
                       <label
                         htmlFor="price"
                         className="font-label-md text-label-md text-on-surface-variant mb-1"
                       >
-                        Precio (USD)
+                        Precio Base (ARS) <span className="text-error">*</span>
                       </label>
                       <div className="relative">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-medium">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-medium select-none">
                           $
                         </span>
                         <input
                           id="price"
                           value={price}
-                          onChange={(e) => setPrice(e.target.value)}
-                          required
+                          onChange={(e) => {
+                            setPrice(e.target.value);
+                            if (fieldErrors.price)
+                              setFieldErrors((p) => ({ ...p, price: undefined }));
+                          }}
                           min="0"
-                          step="0.01"
-                          className="w-full h-12 pl-10 pr-3 py-2 border border-outline-variant rounded-lg bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-on-surface placeholder:text-outline"
-                          placeholder="0.00"
+                          step="1"
+                          className={`${inputClass(fieldErrors.price)} pl-7`}
+                          placeholder="0"
                           type="number"
                         />
                       </div>
+                      {fieldErrors.price && (
+                        <p className="flex items-center gap-1 font-caption text-caption text-error">
+                          <span className="material-symbols-outlined text-[13px]">error</span>
+                          {fieldErrors.price}
+                        </p>
+                      )}
                     </div>
+
+                    {/* Duración */}
                     <div className="col-span-1 flex flex-col gap-1">
                       <label
                         htmlFor="duration"
@@ -202,7 +290,7 @@ export const NewTreatmentPage = () => {
                           placeholder="45"
                           type="number"
                         />
-                        <div className="relative w-32 shrink-0">
+                        <div className="relative w-28 shrink-0">
                           <select
                             value={durationUnit}
                             onChange={(e) => setDurationUnit(e.target.value as "min" | "hr")}
@@ -220,7 +308,7 @@ export const NewTreatmentPage = () => {
                   </div>
                 </section>
 
-                {/* Description */}
+                {/* Descripción */}
                 <section className="pt-6 border-t border-outline-variant/30">
                   <h3 className="font-h3 text-h3 text-on-surface mb-6 flex items-center gap-2 border-b border-outline-variant/30 pb-2">
                     <span className="material-symbols-outlined text-primary">description</span>
@@ -240,16 +328,16 @@ export const NewTreatmentPage = () => {
                       className="w-full px-3 py-2 border border-outline-variant rounded-lg bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none text-on-surface placeholder:text-outline"
                       placeholder="Describa el procedimiento, materiales utilizados y recomendaciones para el paciente..."
                       rows={5}
-                    ></textarea>
+                    />
                   </div>
                 </section>
               </div>
             </div>
           </div>
 
-          {/* Side Summary/Visual Panel */}
+          {/* Panel lateral */}
           <div className="col-span-1 lg:col-span-4 space-y-6 mt-8 lg:mt-0">
-            {/* Preview Card */}
+            {/* Vista Previa */}
             <div className="bg-surface border border-outline-variant rounded-xl p-6 overflow-hidden relative shadow-sm">
               <div className="absolute top-0 right-0 p-2">
                 <span className="px-2 py-1 bg-secondary-container text-on-secondary-container font-label-sm rounded-sm">
@@ -259,26 +347,23 @@ export const NewTreatmentPage = () => {
               <h4 className="font-label-md text-outline uppercase tracking-widest mb-6">
                 Vista Previa
               </h4>
-
               <div className="flex flex-col items-center text-center p-6">
                 <div className="w-16 h-16 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center mb-6">
                   <span className="material-symbols-outlined text-[32px]">medical_services</span>
                 </div>
-
                 <h5 className="font-h2 text-h2 text-on-surface mb-2">
                   {name || "Nombre Tratamiento"}
                 </h5>
-
                 <span className="px-3 py-1 bg-surface-container-high text-on-surface-variant rounded-full text-xs font-medium mb-6">
                   {category || "Sin Categoría"}
                 </span>
-
-                <div className="flex justify-center gap-16 w-full border-t border-outline-variant/50 pt-6 mt-2">
+                <div className="flex justify-center gap-12 w-full border-t border-outline-variant/50 pt-6 mt-2">
                   <div>
                     <p className="text-xs text-outline mb-1">Precio</p>
-                    <p className="font-h3 text-h3 text-primary">${price || "0.00"}</p>
+                    <p className="font-h3 text-h3 text-primary">$ {previewPrice}</p>
+                    <p className="font-caption text-caption text-outline">ARS</p>
                   </div>
-                  <div className="border-l border-outline-variant/50 pl-16">
+                  <div className="border-l border-outline-variant/50 pl-12">
                     <p className="text-xs text-outline mb-1">Tiempo</p>
                     <p className="font-h3 text-h3 text-on-surface">
                       {duration ? `${duration} ${durationUnit}` : "-- min"}
@@ -288,7 +373,7 @@ export const NewTreatmentPage = () => {
               </div>
             </div>
 
-            {/* Clinical Guidelines Card */}
+            {/* Guía */}
             <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
               <h4 className="font-label-md text-on-surface mb-3 flex items-center gap-2">
                 <span
@@ -304,9 +389,7 @@ export const NewTreatmentPage = () => {
                   <span className="material-symbols-outlined text-secondary text-[18px] shrink-0">
                     check_circle
                   </span>
-                  <span>
-                    Defina precios competitivos basados en los costos de materiales actuales.
-                  </span>
+                  <span>El precio debe estar en pesos argentinos (ARS).</span>
                 </li>
                 <li className="flex gap-2 text-body-sm text-on-surface-variant">
                   <span className="material-symbols-outlined text-secondary text-[18px] shrink-0">
@@ -318,7 +401,7 @@ export const NewTreatmentPage = () => {
                   <span className="material-symbols-outlined text-secondary text-[18px] shrink-0">
                     check_circle
                   </span>
-                  <span>Use etiquetas claras para facilitar la búsqueda en facturación.</span>
+                  <span>El código debe ser único — se usa para identificar el tratamiento.</span>
                 </li>
               </ul>
             </div>
