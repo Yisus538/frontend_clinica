@@ -28,6 +28,7 @@ function splitFullName(fullName: string): { firstName: string; lastName: string 
 
 interface FormState {
   fullName: string;
+  nickname: string;
   licenseNumber: string;
   specialty: string;
   email: string;
@@ -39,6 +40,7 @@ interface FormState {
 function profileToForm(p: ProfileResponse): FormState {
   return {
     fullName: `${p.firstName} ${p.lastName}`.trim(),
+    nickname: p.nickname ?? "",
     licenseNumber: p.licenseNumber ?? "",
     specialty: p.specialty ?? "",
     email: p.email,
@@ -126,6 +128,7 @@ export const SettingsPage = () => {
       const updated = await settingsApi.updateProfile({
         firstName,
         lastName,
+        nickname: form.nickname || undefined,
         licenseNumber: form.licenseNumber || undefined,
         specialty: form.specialty,
         bio: form.bio,
@@ -281,6 +284,23 @@ export const SettingsPage = () => {
                   name="fullName"
                   value={form.fullName}
                   onChange={handleChange}
+                  className="h-12 px-3 border border-outline-variant rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface"
+                  type="text"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="font-label-md text-label-md text-on-surface">
+                  Apodo{" "}
+                  <span className="font-label-sm text-on-surface-variant normal-case tracking-normal">
+                    (se muestra en el dashboard)
+                  </span>
+                </label>
+                <input
+                  name="nickname"
+                  value={form.nickname}
+                  onChange={handleChange}
+                  placeholder="Ej: Dr. García"
+                  maxLength={80}
                   className="h-12 px-3 border border-outline-variant rounded bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all font-body-md text-on-surface"
                   type="text"
                 />

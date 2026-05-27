@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import { StatCard } from "../shared/components/StatCard";
 import { TreatmentCatalogTable } from "../features/treatments/components/TreatmentCatalogTable";
@@ -11,6 +11,8 @@ export const TreatmentsPage = () => {
   const navigate = useNavigate();
   const [treatments, setTreatments] = useState<Treatment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q")?.toLowerCase() ?? "";
 
   useEffect(() => {
     treatmentsApi
@@ -36,6 +38,12 @@ export const TreatmentsPage = () => {
   const handleEdit = (target: Treatment) => {
     navigate(`/dashboard/tratamientos/${target.id}/editar`);
   };
+
+  const filteredTreatments = q
+    ? treatments.filter(
+        (t) => t.name.toLowerCase().includes(q) || t.category.toLowerCase().includes(q)
+      )
+    : treatments;
 
   const activeCount = treatments.filter((t) => t.status === "Activo").length;
   const categoryCount = new Set(treatments.map((t) => t.category)).size;
@@ -100,7 +108,7 @@ export const TreatmentsPage = () => {
         </div>
       ) : (
         <TreatmentCatalogTable
-          treatments={treatments}
+          treatments={filteredTreatments}
           onEdit={handleEdit}
           onToggleStatus={handleToggleStatus}
         />

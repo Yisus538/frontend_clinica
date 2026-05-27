@@ -169,7 +169,6 @@ export const NewAppointmentPage = () => {
       setForm((prev) => ({
         ...prev,
         durationMinutes: closestDuration(treatment.estimatedDurationMinutes),
-        notes: prev.notes || treatment.name,
       }));
     }
   };
@@ -230,7 +229,7 @@ export const NewAppointmentPage = () => {
         scheduledAt: scheduledAt.toISOString(),
         durationMinutes: parseInt(form.durationMinutes, 10),
         status: "pending",
-        notes: form.notes || undefined,
+        notes: selectedTreatment?.name ?? (form.notes || undefined),
       });
       toast.success("Cita agendada correctamente.");
       navigate("/dashboard/agenda");

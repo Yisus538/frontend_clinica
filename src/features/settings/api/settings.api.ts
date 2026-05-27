@@ -4,6 +4,7 @@ export interface ProfileResponse {
   id: string;
   firstName: string;
   lastName: string;
+  nickname: string | null;
   email: string;
   avatarUrl: string | null;
   specialty: string | null;
@@ -17,6 +18,7 @@ export interface ProfileResponse {
 export interface UpdateProfilePayload {
   firstName?: string;
   lastName?: string;
+  nickname?: string;
   licenseNumber?: string;
   specialty?: string;
   bio?: string;
