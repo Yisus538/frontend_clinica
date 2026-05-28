@@ -1,8 +1,29 @@
+import { useEffect, useState } from "react";
 import { PatientDirectoryTable } from "../features/patients/components/PatientDirectoryTable";
-import { PATIENT_RECORDS } from "../features/patients/data/patients.mock";
-import { Link } from "react-router";
+import { patientsApi, toPatientRecord } from "../features/patients/api/patients.api";
+import { Link, useSearchParams } from "react-router";
+import type { PatientRecord } from "../features/patients/types/patients.types";
 
 export const PatientsPage = () => {
+  const [patients, setPatients] = useState<PatientRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q")?.toLowerCase() ?? "";
+
+  useEffect(() => {
+    patientsApi
+      .findAll()
+      .then((data) => setPatients(data.map(toPatientRecord)))
+      .catch(() => setPatients([]))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const filteredPatients = q
+    ? patients.filter((p) => p.name.toLowerCase().includes(q) || p.dni.toLowerCase().includes(q))
+    : patients;
+
+  const activeCount = patients.filter((p) => p.status === "Activo").length;
+
   return (
     <div className="w-full pb-10">
       {/* Page Header */}
@@ -18,7 +39,7 @@ export const PatientsPage = () => {
             <span className="material-symbols-outlined text-outline text-[20px]">filter_list</span>
             Filtrar
           </button>
-          <Link 
+          <Link
             to="/dashboard/pacientes/nuevo"
             className="flex items-center gap-2 px-4 py-2 bg-primary rounded-lg text-on-primary font-label-md text-label-md hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer"
           >
@@ -28,48 +49,48 @@ export const PatientsPage = () => {
         </div>
       </div>
 
-      {/* Summary Cards (Bento style) */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* Card 1 */}
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary-fixed-dim rounded-bl-full opacity-20 -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
           <div className="flex items-start justify-between relative z-10">
             <div>
-              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Total de Pacientes</p>
-              <h3 className="font-h1 text-h1 text-on-surface">1,204</h3>
+              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">
+                Total de Pacientes
+              </p>
+              <h3 className="font-h1 text-h1 text-on-surface">{patients.length}</h3>
             </div>
             <div className="p-3 bg-surface-container-low rounded-lg text-primary">
               <span className="material-symbols-outlined">groups</span>
             </div>
           </div>
         </div>
-        
-        {/* Card 2 */}
+
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-secondary-fixed-dim rounded-bl-full opacity-20 -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
           <div className="flex items-start justify-between relative z-10">
             <div>
-              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Nuevos este mes</p>
-              <div className="flex items-end gap-2">
-                <h3 className="font-h1 text-h1 text-on-surface">24</h3>
-                <span className="font-label-md text-label-md text-secondary pb-1 flex items-center">
-                  <span className="material-symbols-outlined text-[16px]">trending_up</span> +12%
-                </span>
-              </div>
+              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">
+                En Tratamiento
+              </p>
+              <h3 className="font-h1 text-h1 text-on-surface">
+                {patients.filter((p) => p.status === "En Tratamiento").length}
+              </h3>
             </div>
             <div className="p-3 bg-surface-container-low rounded-lg text-secondary">
-              <span className="material-symbols-outlined">person_add</span>
+              <span className="material-symbols-outlined">medical_services</span>
             </div>
           </div>
         </div>
-        
-        {/* Card 3 */}
+
         <div className="bg-surface-container-lowest p-6 rounded-xl border border-outline-variant relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-surface-variant rounded-bl-full opacity-50 -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
           <div className="flex items-start justify-between relative z-10">
             <div>
-              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">Pacientes Activos</p>
-              <h3 className="font-h1 text-h1 text-on-surface">892</h3>
+              <p className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider mb-1">
+                Pacientes Activos
+              </p>
+              <h3 className="font-h1 text-h1 text-on-surface">{activeCount}</h3>
             </div>
             <div className="p-3 bg-surface-container-low rounded-lg text-tertiary">
               <span className="material-symbols-outlined">health_and_safety</span>
@@ -79,7 +100,15 @@ export const PatientsPage = () => {
       </div>
 
       {/* Patient Table */}
-      <PatientDirectoryTable patients={PATIENT_RECORDS} />
+      {isLoading ? (
+        <div className="flex justify-center py-16">
+          <span className="material-symbols-outlined animate-spin text-primary text-4xl">
+            progress_activity
+          </span>
+        </div>
+      ) : (
+        <PatientDirectoryTable patients={filteredPatients} />
+      )}
     </div>
   );
 };

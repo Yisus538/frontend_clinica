@@ -1,35 +1,43 @@
 import { useState, useEffect } from "react";
 import { Modal } from "../../../shared/components/Modal";
 import type { Appointment, AppointmentStatus } from "../types/agenda.types";
-import { TREATMENTS_MOCK } from "../../treatments/data/treatments.mock";
+import { treatmentsApi, type ApiTreatment } from "../../treatments/api/treatments.api";
 
-/* ── Status button config ── */
+const DURATION_OPTIONS = [15, 30, 45, 60, 90];
+
+function closestDuration(minutes: number): number {
+  return DURATION_OPTIONS.reduce((prev, curr) =>
+    Math.abs(curr - minutes) < Math.abs(prev - minutes) ? curr : prev
+  );
+}
+
 const STATUS_OPTIONS: {
   value: AppointmentStatus;
   icon: string;
   activeClass: string;
 }[] = [
   {
+    value: "Completada",
+    icon: "task_alt",
+    activeClass: "border-tertiary bg-tertiary/10 text-tertiary",
+  },
+  {
     value: "Confirmada",
     icon: "check_circle",
-    activeClass:
-      "border-secondary bg-secondary/10 text-secondary",
+    activeClass: "border-secondary bg-secondary/10 text-secondary",
   },
   {
     value: "Pendiente",
     icon: "pending",
-    activeClass:
-      "border-primary bg-primary/10 text-primary",
+    activeClass: "border-primary bg-primary/10 text-primary",
   },
   {
     value: "Cancelada",
     icon: "cancel",
-    activeClass:
-      "border-error bg-error/10 text-error",
+    activeClass: "border-error bg-error/10 text-error",
   },
 ];
 
-/* ── Helpers ── */
 const fmt2 = (n: number) => String(n).padStart(2, "0");
 
 const formatTimeRange = (apt: Appointment): string => {
@@ -39,12 +47,12 @@ const formatTimeRange = (apt: Appointment): string => {
   return `${fmt2(apt.startHour)}:${fmt2(apt.startMinute)} - ${fmt2(endH)}:${fmt2(endM)}`;
 };
 
-/* ── Props ── */
 interface AppointmentEditModalProps {
   appointment: Appointment | null;
   isOpen: boolean;
   onClose: () => void;
   onSave: (updated: Appointment) => void;
+  onRegisterPayment?: (appointment: Appointment) => void;
 }
 
 export const AppointmentEditModal = ({
@@ -52,75 +60,98 @@ export const AppointmentEditModal = ({
   isOpen,
   onClose,
   onSave,
+  onRegisterPayment,
 }: AppointmentEditModalProps) => {
-  /* Local form state — initialised from the selected appointment */
-  const [patient, setPatient] = useState("");
-  const [treatment, setTreatment] = useState("");
-  const [timeRange, setTimeRange] = useState("");
-  const [status, setStatus] = useState<AppointmentStatus>("Pendiente");
+  const [patient, setPatient] = useState(appointment?.patient ?? "");
+  const [selectedTreatmentName, setSelectedTreatmentName] = useState(
+    appointment?.treatment !== "Consulta" ? (appointment?.treatment ?? "") : ""
+  );
+  const [durationMinutes, setDurationMinutes] = useState(
+    String(appointment?.durationMinutes ?? 30)
+  );
+  const [timeRange] = useState(appointment ? formatTimeRange(appointment) : "");
+  const [status, setStatus] = useState<AppointmentStatus>(appointment?.status ?? "Pendiente");
+  const [treatments, setTreatments] = useState<ApiTreatment[]>([]);
 
-  /* Sync state whenever the modal opens with a new appointment */
   useEffect(() => {
-    if (appointment) {
-      setPatient(appointment.patient);
-      setTreatment(appointment.treatment);
-      setTimeRange(formatTimeRange(appointment));
-      setStatus(appointment.status ?? "Pendiente");
-    }
-  }, [appointment]);
+    treatmentsApi
+      .findAll()
+      .then((data) => setTreatments(data.filter((t) => t.isActive)))
+      .catch(() => setTreatments([]));
+  }, []);
 
   if (!appointment) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSave({ ...appointment, patient, treatment, status });
-    // Note: onSave already calls setSelectedAppointment(null) in AgendaPage,
-    // which unmounts this modal — no explicit onClose() needed here.
+  const handleTreatmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const name = e.target.value;
+    setSelectedTreatmentName(name);
+    const found = treatments.find((t) => t.name === name);
+    if (found?.estimatedDurationMinutes) {
+      setDurationMinutes(String(closestDuration(found.estimatedDurationMinutes)));
+    }
   };
 
-  /* ── Footer ── */
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave({
+      ...appointment,
+      patient,
+      treatment: selectedTreatmentName || "Consulta",
+      status,
+      durationMinutes: parseInt(durationMinutes, 10),
+    });
+  };
+
   const footer = (
-    <div className="flex gap-3">
-      <button
-        type="button"
-        onClick={onClose}
-        className="flex-1 py-2.5 px-4 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
-      >
-        Cancelar
-      </button>
-      <button
-        form="appointment-edit-form"
-        type="submit"
-        className="flex-1 py-2.5 px-4 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer"
-      >
-        Guardar Cambios
-      </button>
+    <div className="flex flex-col gap-2">
+      {status === "Completada" && onRegisterPayment && appointment && (
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            onRegisterPayment({
+              ...appointment,
+              status,
+              treatment: selectedTreatmentName || "Consulta",
+              durationMinutes: parseInt(durationMinutes, 10),
+            });
+          }}
+          className="w-full py-2.5 px-4 bg-secondary text-on-secondary font-label-md text-label-md rounded-lg hover:opacity-90 transition-opacity shadow-sm cursor-pointer flex items-center justify-center gap-2"
+        >
+          <span className="material-symbols-outlined text-[18px]">payments</span>
+          Registrar Cobro
+        </button>
+      )}
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 py-2.5 px-4 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          form="appointment-edit-form"
+          type="submit"
+          className="flex-1 py-2.5 px-4 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer"
+        >
+          Guardar Cambios
+        </button>
+      </div>
     </div>
   );
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Editar Cita"
-      footer={footer}
-    >
-      <form
-        id="appointment-edit-form"
-        onSubmit={handleSubmit}
-        className="p-6 flex flex-col gap-5"
-      >
+    <Modal isOpen={isOpen} onClose={onClose} title="Editar Cita" footer={footer}>
+      <form id="appointment-edit-form" onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
         {/* Patient */}
         <div className="flex flex-col gap-1.5">
-          <label className="font-label-md text-label-md text-on-surface-variant">
-            Paciente
-          </label>
+          <label className="font-label-md text-label-md text-on-surface-variant">Paciente</label>
           <div className="relative">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl pointer-events-none">
               search
             </span>
             <input
-              id="edit-patient"
               type="text"
               value={patient}
               onChange={(e) => setPatient(e.target.value)}
@@ -130,70 +161,82 @@ export const AppointmentEditModal = ({
           </div>
         </div>
 
-        {/* Treatment */}
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="edit-treatment"
-            className="font-label-md text-label-md text-on-surface-variant"
-          >
-            Tratamiento
-          </label>
-          <div className="relative">
-            <select
-              id="edit-treatment"
-              value={treatment}
-              onChange={(e) => setTreatment(e.target.value)}
-              className="w-full appearance-none px-4 py-3 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+        {/* Treatment — solo si hay tratamientos cargados */}
+        {treatments.length > 0 && (
+          <div className="flex flex-col gap-1.5">
+            <label
+              htmlFor="edit-treatment"
+              className="font-label-md text-label-md text-on-surface-variant"
             >
-              {TREATMENTS_MOCK.filter((t) => t.status === "Activo").map((t) => (
-                <option key={t.id} value={t.name}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
-            <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">
-              arrow_drop_down
-            </span>
+              Tratamiento
+            </label>
+            <div className="relative">
+              <select
+                id="edit-treatment"
+                value={selectedTreatmentName}
+                onChange={handleTreatmentChange}
+                className="w-full appearance-none px-4 py-3 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer"
+              >
+                <option value="">Sin tratamiento</option>
+                {treatments.map((t) => (
+                  <option key={t.id} value={t.name}>
+                    {t.name}
+                    {t.estimatedDurationMinutes ? ` — ${t.estimatedDurationMinutes} min` : ""}
+                  </option>
+                ))}
+              </select>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-outline pointer-events-none">
+                arrow_drop_down
+              </span>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Date & Time — read-only display; date editing goes through the calendar */}
+        {/* Horario + Duración */}
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="font-label-md text-label-md text-on-surface-variant">
-              Horario
-            </label>
+            <label className="font-label-md text-label-md text-on-surface-variant">Horario</label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl pointer-events-none">
                 schedule
               </span>
               <input
                 type="text"
+                readOnly
                 value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface-variant cursor-default"
               />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="font-label-md text-label-md text-on-surface-variant">
               Duración
+              {selectedTreatmentName && (
+                <span className="ml-1 font-caption text-caption text-secondary">
+                  · auto-completado
+                </span>
+              )}
             </label>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl pointer-events-none">
                 timer
               </span>
-              <input
-                type="text"
-                readOnly
-                value={`${appointment.durationMinutes} min`}
-                className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface-variant cursor-default"
-              />
+              <select
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer appearance-none"
+              >
+                {DURATION_OPTIONS.map((d) => (
+                  <option key={d} value={d}>
+                    {d} min
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
 
-        {/* Doctor (read-only if present) */}
+        {/* Profesional (read-only) */}
         {appointment.doctor && (
           <div className="flex flex-col gap-1.5">
             <label className="font-label-md text-label-md text-on-surface-variant">
@@ -210,7 +253,7 @@ export const AppointmentEditModal = ({
           </div>
         )}
 
-        {/* Status selector */}
+        {/* Estado */}
         <div className="flex flex-col gap-1.5">
           <label className="font-label-md text-label-md text-on-surface-variant">
             Estado de la Cita
@@ -229,9 +272,7 @@ export const AppointmentEditModal = ({
                       : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    {opt.icon}
-                  </span>
+                  <span className="material-symbols-outlined text-[18px]">{opt.icon}</span>
                   {opt.value}
                 </button>
               );

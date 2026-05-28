@@ -1,8 +1,12 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import type { TreatmentCategory } from "../features/treatments/types/treatments.types";
-import { treatmentsApi, CATEGORY_REVERSE } from "../features/treatments/api/treatments.api";
+import {
+  treatmentsApi,
+  CATEGORY_REVERSE,
+  CATEGORY_MAP,
+} from "../features/treatments/api/treatments.api";
 
 interface FieldErrors {
   name?: string;
@@ -11,8 +15,11 @@ interface FieldErrors {
   price?: string;
 }
 
-export const NewTreatmentPage = () => {
+export const EditTreatmentPage = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
+
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
@@ -23,6 +30,25 @@ export const NewTreatmentPage = () => {
   const [duration, setDuration] = useState("");
   const [durationUnit, setDurationUnit] = useState<"min" | "hr">("min");
   const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+    treatmentsApi
+      .findOne(id)
+      .then((t) => {
+        setName(t.name);
+        setCategory(CATEGORY_MAP[t.category]);
+        setCode(t.code);
+        setPrice(String(t.basePrice));
+        if (t.estimatedDurationMinutes) setDuration(String(t.estimatedDurationMinutes));
+        setDescription(t.description ?? "");
+      })
+      .catch(() => {
+        toast.error("No se pudo cargar el tratamiento.");
+        navigate("/dashboard/tratamientos");
+      })
+      .finally(() => setIsLoading(false));
+  }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,7 +75,7 @@ export const NewTreatmentPage = () => {
           ? Number(duration) * 60
           : Number(duration)
         : undefined;
-      await treatmentsApi.create({
+      await treatmentsApi.update(id!, {
         code: code.trim(),
         name: name.trim(),
         category: CATEGORY_REVERSE[category as TreatmentCategory],
@@ -57,12 +83,12 @@ export const NewTreatmentPage = () => {
         estimatedDurationMinutes: durationMinutes,
         description: description.trim() || undefined,
       });
-      toast.success("Tratamiento guardado correctamente.", {
-        description: `"${name.trim()}" fue añadido al catálogo.`,
+      toast.success("Tratamiento actualizado correctamente.", {
+        description: `"${name.trim()}" fue modificado en el catálogo.`,
       });
       navigate("/dashboard/tratamientos");
     } catch {
-      toast.error("Error al guardar el tratamiento.", {
+      toast.error("Error al actualizar el tratamiento.", {
         description: "Verificá que el código no esté repetido e intentá nuevamente.",
       });
     } finally {
@@ -79,16 +105,26 @@ export const NewTreatmentPage = () => {
 
   const previewPrice = price ? Number(price).toLocaleString("es-AR") : "0";
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-32">
+        <span className="material-symbols-outlined animate-spin text-primary text-4xl">
+          progress_activity
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full pb-10">
       <form onSubmit={handleSubmit} noValidate>
         {/* Header */}
         <div className="mb-16 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
-            <h1 className="font-h1 text-h1 text-on-surface mb-2">Nuevo Tratamiento</h1>
+            <h1 className="font-h1 text-h1 text-on-surface mb-2">Editar Tratamiento</h1>
             <p className="font-body-md text-body-md text-on-surface-variant max-w-xl">
-              Registre un nuevo servicio clínico en el catálogo del sistema. Asegúrese de que los
-              detalles de precios y duración sean precisos para la programación automática.
+              Modificá los datos del servicio clínico. Los cambios se aplicarán inmediatamente en el
+              catálogo y en las nuevas citas que lo utilicen.
             </p>
           </div>
           <div className="flex gap-4 w-full sm:w-auto">
@@ -114,7 +150,7 @@ export const NewTreatmentPage = () => {
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[18px]">save</span>
-                  Guardar Tratamiento
+                  Guardar Cambios
                 </>
               )}
             </button>
@@ -340,8 +376,8 @@ export const NewTreatmentPage = () => {
             {/* Vista Previa */}
             <div className="bg-surface border border-outline-variant rounded-xl p-6 overflow-hidden relative shadow-sm">
               <div className="absolute top-0 right-0 p-2">
-                <span className="px-2 py-1 bg-secondary-container text-on-secondary-container font-label-sm rounded-sm">
-                  NUEVO
+                <span className="px-2 py-1 bg-primary-container text-on-primary-container font-label-sm rounded-sm">
+                  EDITANDO
                 </span>
               </div>
               <h4 className="font-label-md text-outline uppercase tracking-widest mb-6">
