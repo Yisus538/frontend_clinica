@@ -1,13 +1,7 @@
 import { apiClient } from "../../../shared/api/client";
+import type { AuthUser } from "../types/auth.types";
 
-export interface AuthUser {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  permissions: string[];
-}
+export type { AuthUser };
 
 export interface LoginDto {
   email: string;

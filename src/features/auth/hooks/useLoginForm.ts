@@ -59,6 +59,6 @@ export function useLoginForm() {
     ...form,
     showPassword,
     toggleShowPassword,
-    errors: { ...form.errors, ...(apiError ? { email: apiError } : {}) },
+    errors: { ...form.errors, ...(apiError ? { email: apiError } : {}) } as LoginFormErrors,
   };
 }
