@@ -1,0 +1,8 @@
+[variables]
+NODE_VERSION = "22"
+
+[phases.install]
+cmds = ["HUSKY=0 npm install"]
+
+[phases.build]
+cmds = ["npm run build"]
