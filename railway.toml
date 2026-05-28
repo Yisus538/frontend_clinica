@@ -1,0 +1,6 @@
+[build]
+buildCommand = "HUSKY=0 npm install && npm run build"
+
+[deploy]
+startCommand = "npx serve -s dist -l $PORT"
+healthcheckPath = "/"
