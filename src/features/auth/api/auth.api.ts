@@ -8,8 +8,12 @@ export interface LoginDto {
   password: string;
 }
 
+export interface LoginResponse extends AuthUser {
+  accessToken: string;
+}
+
 export const authApi = {
-  login: (dto: LoginDto) => apiClient.post<AuthUser>("/auth/login", dto),
+  login: (dto: LoginDto) => apiClient.post<LoginResponse>("/auth/login", dto),
   logout: () => apiClient.post<{ message: string }>("/auth/logout", {}),
   me: () => apiClient.get<AuthUser>("/auth/me"),
 };
