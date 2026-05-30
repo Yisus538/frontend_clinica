@@ -555,7 +555,7 @@ export const SettingsPage = () => {
 
         {/* Availability — solo para ODONTOLOGO */}
         {isOdontologo && schedule && (
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-8 shadow-sm flex flex-col gap-6">
+          <div className="col-span-full bg-surface-container-lowest border border-outline-variant rounded-2xl p-8 shadow-sm flex flex-col gap-6">
             <div className="flex items-center justify-between pb-4 border-b border-outline-variant">
               <div>
                 <h2 className="font-h3 text-h3 text-on-surface">Disponibilidad horaria</h2>
