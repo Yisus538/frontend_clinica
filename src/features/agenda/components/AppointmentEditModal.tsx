@@ -53,6 +53,7 @@ interface AppointmentEditModalProps {
   onClose: () => void;
   onSave: (updated: Appointment) => void;
   onRegisterPayment?: (appointment: Appointment) => void;
+  onSaveAsync?: (updated: Appointment) => Promise<void>;
 }
 
 export const AppointmentEditModal = ({
@@ -72,6 +73,8 @@ export const AppointmentEditModal = ({
   const [timeRange] = useState(appointment ? formatTimeRange(appointment) : "");
   const [status, setStatus] = useState<AppointmentStatus>(appointment?.status ?? "Pendiente");
   const [treatments, setTreatments] = useState<ApiTreatment[]>([]);
+  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     treatmentsApi
@@ -93,35 +96,66 @@ export const AppointmentEditModal = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
+    const updated: Appointment = {
       ...appointment,
       patient,
       treatment: selectedTreatmentName || "Consulta",
       status,
       durationMinutes: parseInt(durationMinutes, 10),
-    });
+    };
+    if (status === "Completada") {
+      setIsSaving(true);
+      // Call onSave and show prompt on success
+      try {
+        onSave(updated);
+        setShowPaymentPrompt(true);
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      onSave(updated);
+    }
   };
 
-  const footer = (
-    <div className="flex flex-col gap-2">
-      {status === "Completada" && onRegisterPayment && appointment && (
+  const footer = showPaymentPrompt ? (
+    <div className="flex flex-col gap-3 p-1">
+      <p className="font-body-md text-body-md text-on-surface text-center">
+        ¿Deseás registrar el cobro de esta cita?
+      </p>
+      <div className="flex gap-3">
         <button
           type="button"
           onClick={() => {
+            setShowPaymentPrompt(false);
             onClose();
-            onRegisterPayment({
-              ...appointment,
-              status,
-              treatment: selectedTreatmentName || "Consulta",
-              durationMinutes: parseInt(durationMinutes, 10),
-            });
           }}
-          className="w-full py-2.5 px-4 bg-secondary text-on-secondary font-label-md text-label-md rounded-lg hover:opacity-90 transition-opacity shadow-sm cursor-pointer flex items-center justify-center gap-2"
+          className="flex-1 py-2.5 px-4 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
         >
-          <span className="material-symbols-outlined text-[18px]">payments</span>
-          Registrar Cobro
+          No, cerrar
         </button>
-      )}
+        {onRegisterPayment && (
+          <button
+            type="button"
+            onClick={() => {
+              setShowPaymentPrompt(false);
+              onRegisterPayment({
+                ...appointment,
+                status,
+                treatment: selectedTreatmentName || "Consulta",
+                durationMinutes: parseInt(durationMinutes, 10),
+              });
+              onClose();
+            }}
+            className="flex-1 py-2.5 px-4 bg-secondary text-on-secondary font-label-md text-label-md rounded-lg hover:opacity-90 transition-opacity shadow-sm cursor-pointer flex items-center justify-center gap-2"
+          >
+            <span className="material-symbols-outlined text-[18px]">payments</span>
+            Sí, registrar cobro
+          </button>
+        )}
+      </div>
+    </div>
+  ) : (
+    <div className="flex flex-col gap-2">
       <div className="flex gap-3">
         <button
           type="button"
@@ -133,7 +167,8 @@ export const AppointmentEditModal = ({
         <button
           form="appointment-edit-form"
           type="submit"
-          className="flex-1 py-2.5 px-4 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer"
+          disabled={isSaving}
+          className="flex-1 py-2.5 px-4 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer disabled:opacity-50"
         >
           Guardar Cambios
         </button>
