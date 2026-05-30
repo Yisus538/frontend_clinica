@@ -1,4 +1,5 @@
 import type { PatientRow } from "../types/dashboard.types";
+import { EmptyState } from "../../../shared/components/EmptyState";
 
 const STATUS_STYLES: Record<PatientRow["status"], string> = {
   Completado: "bg-primary-container text-on-primary-container",
@@ -26,65 +27,67 @@ export const PatientTable = ({ patients }: PatientTableProps) => {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-surface border-b border-outline-variant">
-              <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold">
-                PACIENTE
-              </th>
-              <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold">
-                TRATAMIENTO
-              </th>
-              <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold">
-                ESTADO
-              </th>
-              <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold text-right">
-                ÚLTIMA VISITA
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {patients.map((patient, idx) => (
-              <tr
-                key={patient.id}
-                className={`hover:bg-surface transition-colors cursor-pointer ${
-                  idx < patients.length - 1 ? "border-b border-outline-variant" : ""
-                }`}
-              >
-                <td className="py-6 px-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center font-label-sm text-primary font-bold uppercase">
-                      {patient.initials}
-                    </div>
-                    <div>
-                      <div className="font-label-md text-label-md text-on-surface">
-                        {patient.name}
-                      </div>
-                      <div className="font-caption text-caption text-on-surface-variant">
-                        ID: {patient.id}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-                <td className="py-6 px-6 font-body-sm text-body-sm text-on-surface">
-                  {patient.treatment}
-                </td>
-                <td className="py-6 px-6">
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full font-label-sm text-label-sm ${STATUS_STYLES[patient.status]}`}
-                  >
-                    {patient.status}
-                  </span>
-                </td>
-                <td className="py-6 px-6 font-body-sm text-body-sm text-on-surface-variant text-right">
-                  {patient.lastVisit}
-                </td>
+      {patients.length === 0 ? (
+        <EmptyState
+          icon="group"
+          title="No hay pacientes recientes"
+          description="Aquí aparecerán los pacientes que hayas atendido o registrado recientemente."
+        />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-surface border-b border-outline-variant">
+                <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold">
+                  PACIENTE
+                </th>
+                <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold">
+                  ESTADO
+                </th>
+                <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold text-right">
+                  ÚLTIMA VISITA
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {patients.map((patient, idx) => (
+                <tr
+                  key={patient.id}
+                  className={`hover:bg-surface transition-colors cursor-pointer ${
+                    idx < patients.length - 1 ? "border-b border-outline-variant" : ""
+                  }`}
+                >
+                  <td className="py-6 px-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center font-label-sm text-primary font-bold uppercase">
+                        {patient.initials}
+                      </div>
+                      <div>
+                        <div className="font-label-md text-label-md text-on-surface">
+                          {patient.name}
+                        </div>
+                        <div className="font-caption text-caption text-on-surface-variant">
+                          ID: {patient.id}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-6 px-6">
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full font-label-sm text-label-sm ${STATUS_STYLES[patient.status]}`}
+                    >
+                      {patient.status}
+                    </span>
+                  </td>
+                  <td className="py-6 px-6 font-body-sm text-body-sm text-on-surface-variant text-right">
+                    {patient.lastVisit}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   );
 };

@@ -2,20 +2,69 @@ import type { AppointmentBlockProps, AppointmentStatus } from "../types/agenda.t
 
 /** Color maps per appointment variant (fallback when no status is set) */
 const VARIANT_STYLES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
-  primary:   { bg: "bg-primary-container",   text: "text-on-primary-container",   border: "border-primary/20",      dot: "bg-primary" },
-  secondary: { bg: "bg-secondary-container", text: "text-on-secondary-container", border: "border-secondary/20",    dot: "bg-secondary" },
-  error:     { bg: "bg-error-container",     text: "text-on-error-container",     border: "border-error/20",        dot: "bg-error" },
-  neutral:   { bg: "bg-surface-variant",     text: "text-on-surface",             border: "border-outline-variant", dot: "bg-outline" },
+  primary: {
+    bg: "bg-primary-container",
+    text: "text-on-primary-container",
+    border: "border-primary/20",
+    dot: "bg-primary",
+  },
+  secondary: {
+    bg: "bg-secondary-container",
+    text: "text-on-secondary-container",
+    border: "border-secondary/20",
+    dot: "bg-secondary",
+  },
+  error: {
+    bg: "bg-error-container",
+    text: "text-on-error-container",
+    border: "border-error/20",
+    dot: "bg-error",
+  },
+  neutral: {
+    bg: "bg-surface-variant",
+    text: "text-on-surface",
+    border: "border-outline-variant",
+    dot: "bg-outline",
+  },
 };
 
 /** Status overrides the variant — updated automatically when the edit modal saves */
-const STATUS_STYLES: Record<AppointmentStatus, { bg: string; text: string; border: string; dot: string }> = {
-  Confirmada: { bg: "bg-secondary-container", text: "text-on-secondary-container", border: "border-secondary/20",    dot: "bg-secondary" },
-  Pendiente:  { bg: "bg-primary-container",   text: "text-on-primary-container",   border: "border-primary/20",      dot: "bg-primary" },
-  Cancelada:  { bg: "bg-surface-variant",     text: "text-on-surface-variant",     border: "border-outline-variant", dot: "bg-outline" },
+const STATUS_STYLES: Record<
+  AppointmentStatus,
+  { bg: string; text: string; border: string; dot: string }
+> = {
+  Confirmada: {
+    bg: "bg-secondary-container",
+    text: "text-on-secondary-container",
+    border: "border-secondary/20",
+    dot: "bg-secondary",
+  },
+  Pendiente: {
+    bg: "bg-primary-container",
+    text: "text-on-primary-container",
+    border: "border-primary/20",
+    dot: "bg-primary",
+  },
+  Cancelada: {
+    bg: "bg-surface-variant",
+    text: "text-on-surface-variant",
+    border: "border-outline-variant",
+    dot: "bg-outline",
+  },
+  Completada: {
+    bg: "bg-tertiary-container",
+    text: "text-on-tertiary-container",
+    border: "border-tertiary/20",
+    dot: "bg-tertiary",
+  },
 };
 
-export const AppointmentBlock = ({ appointment, slotHeight, startHour, onClick }: AppointmentBlockProps) => {
+export const AppointmentBlock = ({
+  appointment,
+  slotHeight,
+  startHour,
+  onClick,
+}: AppointmentBlockProps) => {
   const {
     patient,
     treatment,
@@ -29,7 +78,9 @@ export const AppointmentBlock = ({ appointment, slotHeight, startHour, onClick }
   } = appointment;
 
   /* Status takes visual priority over the static variant */
-  const style = status ? STATUS_STYLES[status] : (VARIANT_STYLES[variant] ?? VARIANT_STYLES.neutral);
+  const style = status
+    ? STATUS_STYLES[status]
+    : (VARIANT_STYLES[variant] ?? VARIANT_STYLES.neutral);
 
   /* Position & sizing */
   const topPx = ((aptStart - startHour) * 60 + startMinute) * (slotHeight / 60);
@@ -39,8 +90,7 @@ export const AppointmentBlock = ({ appointment, slotHeight, startHour, onClick }
   const endTotalMin = aptStart * 60 + startMinute + durationMinutes;
   const endH = Math.floor(endTotalMin / 60);
   const endM = endTotalMin % 60;
-  const fmt = (h: number, m: number) =>
-    `${h > 12 ? h - 12 : h}:${String(m).padStart(2, "0")}`;
+  const fmt = (h: number, m: number) => `${h > 12 ? h - 12 : h}:${String(m).padStart(2, "0")}`;
   const timeLabel = `${fmt(aptStart, startMinute)} - ${fmt(endH, endM)}`;
 
   return (
@@ -70,10 +120,7 @@ export const AppointmentBlock = ({ appointment, slotHeight, startHour, onClick }
         <span className="truncate">{patient}</span>
 
         {/* Status dot — reflects changes from the edit modal instantly */}
-        <span
-          title={status}
-          className={`ml-auto shrink-0 w-2 h-2 rounded-full ${style.dot}`}
-        />
+        <span title={status} className={`ml-auto shrink-0 w-2 h-2 rounded-full ${style.dot}`} />
       </div>
 
       <div className="font-caption text-caption opacity-90 truncate mt-0.5">{treatment}</div>

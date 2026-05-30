@@ -1,20 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PatientDirectoryTable } from "../features/patients/components/PatientDirectoryTable";
 import { patientsApi, toPatientRecord } from "../features/patients/api/patients.api";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import type { PatientRecord } from "../features/patients/types/patients.types";
 
 export const PatientsPage = () => {
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q") ?? "";
 
-  useEffect(() => {
+  const loadPatients = useCallback((search?: string) => {
+    setIsLoading(true);
     patientsApi
-      .findAll()
+      .findAll(search)
       .then((data) => setPatients(data.map(toPatientRecord)))
       .catch(() => setPatients([]))
       .finally(() => setIsLoading(false));
   }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadPatients(q || undefined);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [q, loadPatients]);
 
   const activeCount = patients.filter((p) => p.status === "Activo").length;
 

@@ -1,12 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { authApi, type AuthUser } from "../api/auth.api";
-
-interface AuthContextValue {
-  user: AuthUser | null;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-}
+import { tokenStorage } from "../../../shared/api/client";
+import type { AuthContextValue } from "../types/auth.types";
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -23,17 +18,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const u = await authApi.login({ email, password });
-    setUser(u);
+    const { accessToken, ...u } = await authApi.login({ email, password });
+    tokenStorage.set(accessToken);
+    setUser(u as AuthUser);
   }, []);
 
   const logout = useCallback(async () => {
-    await authApi.logout();
+    await authApi.logout().catch(() => {});
+    tokenStorage.clear();
     setUser(null);
   }, []);
 
+  const hasPermission = useCallback(
+    (permission: string) => user?.permissions?.includes(permission) ?? false,
+    [user]
+  );
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, isLoading, isAuthenticated: user !== null, login, logout, hasPermission }}
+    >
       {children}
     </AuthContext.Provider>
   );

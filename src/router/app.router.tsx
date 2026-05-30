@@ -9,6 +9,7 @@ import { NewPatientPage } from "../page/NewPatientPage";
 import { PatientProfilePage } from "../page/PatientProfilePage";
 import { TreatmentsPage } from "../page/TreatmentsPage";
 import { NewTreatmentPage } from "../page/NewTreatmentPage";
+import { EditTreatmentPage } from "../page/EditTreatmentPage";
 import { FinancesPage } from "../page/FinancesPage";
 import { SettingsPage } from "../page/SettingsPage";
 import { DashboardLayout } from "../shared/components/layout/DashboardLayout";
@@ -39,6 +40,7 @@ export const AppRouter = createBrowserRouter([
           { path: "pacientes/:id", element: <PatientProfilePage /> },
           { path: "tratamientos", element: <TreatmentsPage /> },
           { path: "tratamientos/nuevo", element: <NewTreatmentPage /> },
+          { path: "tratamientos/:id/editar", element: <EditTreatmentPage /> },
           { path: "finanzas", element: <FinancesPage /> },
           { path: "configuracion", element: <SettingsPage /> },
         ],

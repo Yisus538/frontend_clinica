@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import type { Treatment, TreatmentCategory } from "../types/treatments.types";
 import { StatusBadge } from "../../../shared/components/StatusBadge";
+import { EmptyState } from "../../../shared/components/EmptyState";
 
 const CATEGORY_STYLES: Record<TreatmentCategory, string> = {
   Prevención: "bg-surface-container-high text-primary",
@@ -12,9 +14,7 @@ const CATEGORY_STYLES: Record<TreatmentCategory, string> = {
 };
 
 const formatPrice = (price: number) =>
-  new Intl.NumberFormat("es-AR", { style: "currency", currency: "USD" }).format(
-    price
-  );
+  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" }).format(price);
 
 const formatDuration = (minutes: number | null): string =>
   minutes === null ? "N/A" : `${minutes} min`;
@@ -30,7 +30,22 @@ export const TreatmentCatalogTable = ({
   onEdit,
   onToggleStatus,
 }: TreatmentCatalogTableProps) => {
+  const navigate = useNavigate();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  if (treatments.length === 0) {
+    return (
+      <div className="bg-surface-container-lowest rounded-xl border border-outline-variant">
+        <EmptyState
+          icon="dental"
+          title="No hay tratamientos registrados"
+          description="Agrega los tratamientos y servicios que ofrece tu consultorio."
+          actionLabel="Agregar Tratamiento"
+          onAction={() => navigate("/dashboard/tratamientos/nuevo")}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
@@ -65,13 +80,9 @@ export const TreatmentCatalogTable = ({
                 <tr
                   key={treatment.id}
                   className={`transition-colors group cursor-pointer ${
-                    isSelected
-                      ? "bg-primary-fixed/40"
-                      : "hover:bg-surface/50"
+                    isSelected ? "bg-primary-fixed/40" : "hover:bg-surface/50"
                   }`}
-                  onClick={() =>
-                    setSelectedId(isSelected ? null : treatment.id)
-                  }
+                  onClick={() => setSelectedId(isSelected ? null : treatment.id)}
                 >
                   {/* Name */}
                   <td className="py-4 px-6">
@@ -122,16 +133,10 @@ export const TreatmentCatalogTable = ({
                         }}
                         className="p-1 text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
                       >
-                        <span className="material-symbols-outlined text-[20px]">
-                          edit
-                        </span>
+                        <span className="material-symbols-outlined text-[20px]">edit</span>
                       </button>
                       <button
-                        title={
-                          treatment.status === "Activo"
-                            ? "Desactivar"
-                            : "Activar"
-                        }
+                        title={treatment.status === "Activo" ? "Desactivar" : "Activar"}
                         onClick={(e) => {
                           e.stopPropagation();
                           onToggleStatus?.(treatment);
@@ -143,9 +148,7 @@ export const TreatmentCatalogTable = ({
                         }`}
                       >
                         <span className="material-symbols-outlined text-[20px]">
-                          {treatment.status === "Activo"
-                            ? "toggle_on"
-                            : "toggle_off"}
+                          {treatment.status === "Activo" ? "toggle_on" : "toggle_off"}
                         </span>
                       </button>
                     </div>

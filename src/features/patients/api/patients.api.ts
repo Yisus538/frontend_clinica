@@ -55,7 +55,10 @@ export function toPatientRecord(p: ApiPatient): PatientRecord {
 export { STATUS_REVERSE };
 
 export const patientsApi = {
-  findAll: () => apiClient.get<ApiPatient[]>("/patients"),
+  findAll: (search?: string) =>
+    apiClient.get<ApiPatient[]>(
+      `/patients${search ? `?search=${encodeURIComponent(search)}` : ""}`
+    ),
   findOne: (id: string) => apiClient.get<ApiPatient>(`/patients/${id}`),
   create: (dto: CreatePatientDto) => apiClient.post<ApiPatient>("/patients", dto),
   update: (id: string, dto: Partial<CreatePatientDto>) =>

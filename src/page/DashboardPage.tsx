@@ -4,8 +4,9 @@ import { PatientTable } from "../features/dashboard/components/PatientTable";
 import { AgendaPanel } from "../features/dashboard/components/AgendaPanel";
 import { patientsApi, type ApiPatient } from "../features/patients/api/patients.api";
 import { appointmentsApi, type ApiAppointment } from "../features/agenda/api/appointments.api";
-import { financesApi, type ApiInvoice } from "../features/finances/api/finances.api";
+import { financesApi, getPaidAmount, type ApiInvoice } from "../features/finances/api/finances.api";
 import { useAuth } from "../features/auth/context/AuthContext";
+import { useProfile } from "../features/settings/context/ProfileContext";
 import type {
   PatientRow,
   AgendaItemData,
@@ -16,6 +17,7 @@ import type {
 
 function getGreeting(): string {
   const hour = new Date().getHours();
+  if (hour < 6) return "¡Trasnochador/a";
   if (hour < 12) return "Buenos Días";
   if (hour < 18) return "Buenas Tardes";
   return "Buenas Noches";
@@ -117,6 +119,7 @@ function buildMetrics(
 
 export const DashboardPage = () => {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const [patients, setPatients] = useState<ApiPatient[]>([]);
   const [appointments, setAppointments] = useState<ApiAppointment[]>([]);
   const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
@@ -138,7 +141,7 @@ export const DashboardPage = () => {
 
   const greeting = getGreeting();
   const today = getFormattedDate();
-  const doctorName = user ? `${user.firstName} ${user.lastName}` : "Doctor/a";
+  const doctorName = profile?.nickname || (user ? user.firstName : "Doctor/a");
 
   const todayAppointments = appointments.filter((a) => isToday(a.scheduledAt));
   const activePatients = patients.filter(
@@ -149,10 +152,13 @@ export const DashboardPage = () => {
       (inv) =>
         inv.status === "issued" || inv.status === "partially_paid" || inv.status === "overdue"
     )
-    .reduce((sum, inv) => sum + Number(inv.total), 0);
+    .reduce((sum, inv) => sum + Math.max(0, Number(inv.total) - getPaidAmount(inv)), 0);
 
   const metrics = buildMetrics(todayAppointments.length, activePatients.length, pendingTotal);
-  const recentPatients = patients.slice(0, 5).map(toPatientRow);
+  const recentPatients = [...patients]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+    .map(toPatientRow);
   const agendaItems = todayAppointments
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
     .slice(0, 6)

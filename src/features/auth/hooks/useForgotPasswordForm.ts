@@ -1,8 +1,7 @@
+import { toast } from "sonner";
 import { useForm } from "../../../shared/hooks/useForm";
-import type {
-  ForgotPasswordFormData,
-  ForgotPasswordFormErrors,
-} from "../types/auth.types";
+import { authApi } from "../api/auth.api";
+import type { ForgotPasswordFormData, ForgotPasswordFormErrors } from "../types/auth.types";
 
 const INITIAL_VALUES: ForgotPasswordFormData = {
   email: "",
@@ -23,9 +22,12 @@ export function useForgotPasswordForm() {
     initialValues: INITIAL_VALUES,
     validate,
     onSubmit: async (data) => {
-      // TODO: integrar con API de recuperación de contraseña
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log("Enlace enviado a:", data.email);
+      try {
+        await authApi.forgotPassword(data.email as string);
+        toast.success("Si el email existe recibirás instrucciones para restablecer tu contraseña");
+      } catch {
+        toast.error("No se pudo procesar la solicitud. Intentá nuevamente.");
+      }
     },
   });
 }

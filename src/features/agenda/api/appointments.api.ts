@@ -47,9 +47,16 @@ const STATUS_MAP: Record<BackendStatus, AppointmentStatus> = {
   pending: "Pendiente",
   confirmed: "Confirmada",
   in_progress: "Confirmada",
-  completed: "Confirmada",
+  completed: "Completada",
   cancelled: "Cancelada",
   no_show: "Cancelada",
+};
+
+export const REVERSE_STATUS_MAP: Record<AppointmentStatus, BackendStatus> = {
+  Pendiente: "pending",
+  Confirmada: "confirmed",
+  Completada: "completed",
+  Cancelada: "cancelled",
 };
 
 const VARIANT_MAP: Record<BackendStatus, AppointmentVariant> = {
@@ -77,6 +84,7 @@ export function toAppointment(a: ApiAppointment, weekStart: Date): Appointment {
 
   return {
     id: a.id,
+    patientId: a.patientId,
     patient: patientName,
     treatment: a.notes ?? "Consulta",
     doctor: dentistName,

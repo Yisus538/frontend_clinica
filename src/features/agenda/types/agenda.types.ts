@@ -2,12 +2,13 @@
 
 export type ViewMode = "day" | "week" | "month";
 
-export type AppointmentStatus = "Confirmada" | "Pendiente" | "Cancelada";
+export type AppointmentStatus = "Confirmada" | "Pendiente" | "Cancelada" | "Completada";
 
 export type AppointmentVariant = "primary" | "secondary" | "error" | "neutral";
 
 export interface Appointment {
   id: string;
+  patientId?: string;
   patient: string;
   treatment: string;
   doctor?: string;
@@ -45,7 +46,12 @@ export interface CalendarGridProps {
   appointments: Appointment[];
   startHour?: number;
   endHour?: number;
-  onAppointmentMove?: (id: string, dayIndex: number, startHour: number, startMinute: number) => void;
+  onAppointmentMove?: (
+    id: string,
+    dayIndex: number,
+    startHour: number,
+    startMinute: number
+  ) => void;
   onAppointmentClick?: (appointment: Appointment) => void;
 }
 

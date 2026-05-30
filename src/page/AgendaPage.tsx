@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { CalendarHeader } from "../features/agenda/components/CalendarHeader";
@@ -8,8 +8,10 @@ import { AppointmentEditModal } from "../features/agenda/components/AppointmentE
 import {
   appointmentsApi,
   toAppointment,
+  REVERSE_STATUS_MAP,
   type ApiAppointment,
 } from "../features/agenda/api/appointments.api";
+import { RegisterPaymentModal } from "../features/finances/components/RegisterPaymentModal";
 import type { Appointment, ViewMode, WeekDay } from "../features/agenda/types/agenda.types";
 
 /* ── Helpers ── */
@@ -43,6 +45,7 @@ export const AgendaPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [apiAppointments, setApiAppointments] = useState<ApiAppointment[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [paymentAppointment, setPaymentAppointment] = useState<Appointment | null>(null);
 
   const currentWeekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
@@ -54,12 +57,16 @@ export const AgendaPage = () => {
     return d;
   }, [currentDate]);
 
-  useEffect(() => {
+  const loadAppointments = useCallback(() => {
     appointmentsApi
       .findAll()
       .then(setApiAppointments)
       .catch(() => setApiAppointments([]));
   }, []);
+
+  useEffect(() => {
+    loadAppointments();
+  }, [currentDate, loadAppointments]);
 
   const appointments = useMemo(
     () => apiAppointments.map((a) => toAppointment(a, weekStart)),
@@ -132,7 +139,9 @@ export const AgendaPage = () => {
     if (!original) return;
     appointmentsApi
       .update(updated.id, {
-        notes: updated.treatment,
+        notes: updated.treatment !== "Consulta" ? updated.treatment : undefined,
+        durationMinutes: updated.durationMinutes,
+        status: updated.status ? REVERSE_STATUS_MAP[updated.status] : undefined,
       })
       .then((saved) => {
         setApiAppointments((prev) => prev.map((a) => (a.id === saved.id ? saved : a)));
@@ -142,6 +151,11 @@ export const AgendaPage = () => {
         });
       })
       .catch(() => toast.error("No se pudo guardar la cita."));
+  };
+
+  const handleRegisterPayment = (apt: Appointment) => {
+    setSelectedAppointment(null);
+    setPaymentAppointment(apt);
   };
 
   return (
@@ -154,6 +168,7 @@ export const AgendaPage = () => {
         onPrev={handlePrev}
         onNext={handleNext}
         onToday={handleToday}
+        onRefresh={loadAppointments}
       />
 
       {/* Calendar Grid */}
@@ -190,7 +205,22 @@ export const AgendaPage = () => {
         appointment={selectedAppointment}
         onClose={() => setSelectedAppointment(null)}
         onSave={handleSaveAppointment}
+        onRegisterPayment={handleRegisterPayment}
       />
+
+      {/* Register Payment Modal */}
+      {paymentAppointment && (
+        <RegisterPaymentModal
+          key={paymentAppointment.id}
+          mode="new"
+          isOpen={paymentAppointment !== null}
+          appointmentId={paymentAppointment.id}
+          patientId={paymentAppointment.patientId ?? ""}
+          treatmentName={paymentAppointment.treatment}
+          onClose={() => setPaymentAppointment(null)}
+          onSuccess={() => setPaymentAppointment(null)}
+        />
+      )}
     </div>
   );
 };
