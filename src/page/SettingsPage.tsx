@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { settingsApi, type ProfileResponse } from "../features/settings/api/settings.api";
 import { useProfile } from "../features/settings/context/ProfileContext";
 import { AvatarCropModal } from "../shared/components/AvatarCropModal";
+import { ThemeSelector } from "../features/theme/components/ThemeSelector";
 import { useAuth } from "../features/auth/context/AuthContext";
 import {
   dentistsApi,
@@ -473,6 +474,25 @@ export const SettingsPage = () => {
                 />
               </div>
             </form>
+          </div>
+
+          {/* Apariencia */}
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-sm shadow-primary/5">
+            <h2 className="font-h3 text-h3 text-on-surface mb-6 pb-2 border-b border-outline-variant/30 flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">palette</span>
+              Apariencia
+            </h2>
+            <div className="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p className="font-label-md text-label-md text-on-surface mb-1">
+                  Tema de la interfaz
+                </p>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">
+                  Automático sigue la configuración de tu dispositivo
+                </p>
+              </div>
+              <ThemeSelector />
+            </div>
           </div>
 
           {/* Seguridad y Acceso */}

@@ -147,5 +147,87 @@
 :root {
   --height-control: 48px;
   --font-base: "Inter", sans-serif;
-  --radius-card: 12px;          /* AuthCard uses 12px */
+  --radius-card: 12px;
+}
+
+/* ─── Dark theme tokens ──────────────────────────────────────────────────── */
+/* ThemeContext agrega la clase "theme-dark" en <html> cuando corresponde.   */
+/* "auto" escucha prefers-color-scheme y agrega/quita la clase en JS.        */
+
+html.theme-dark {
+  color-scheme: dark;
+
+  /* Primary */
+  --color-primary: #9bbcff;
+  --color-on-primary: #00235a;
+  --color-primary-container: #003d8f;
+  --color-on-primary-container: #d8e3ff;
+  --color-primary-fixed: #dbe1ff;
+  --color-on-primary-fixed: #00174b;
+  --color-primary-fixed-dim: #b4c5ff;
+  --color-on-primary-fixed-variant: #003ea8;
+  --color-primary-light: #0a1528;
+  --color-primary-border: #1a2d4a;
+  --color-primary-hover: #7aa5ff;
+
+  /* Secondary */
+  --color-secondary: #6dd8cb;
+  --color-on-secondary: #003731;
+  --color-secondary-container: #004f47;
+  --color-on-secondary-container: #8df5e8;
+  --color-secondary-fixed: #89f5e7;
+  --color-secondary-fixed-dim: #6bd8cb;
+  --color-on-secondary-fixed: #00201d;
+  --color-on-secondary-fixed-variant: #005049;
+
+  /* Tertiary */
+  --color-tertiary: #c6c9ca;
+  --color-on-tertiary: #282b2d;
+  --color-tertiary-container: #3d4042;
+  --color-on-tertiary-container: #e0e3e5;
+  --color-tertiary-fixed: #e0e3e5;
+  --color-tertiary-fixed-dim: #c4c7c9;
+  --color-on-tertiary-fixed: #191c1e;
+  --color-on-tertiary-fixed-variant: #444749;
+
+  /* Error */
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+  --color-error-light: #280001;
+
+  /* Surface */
+  --color-surface: #0d1521;
+  --color-on-surface: #d8e4f8;
+  --color-surface-variant: #1d2d42;
+  --color-on-surface-variant: #9aafc5;
+  --color-surface-dim: #080e18;
+  --color-surface-bright: #243246;
+  --color-surface-tint: #9bbcff;
+  --color-surface-container-lowest: #070c14;
+  --color-surface-container-low: #111827;
+  --color-surface-container: #161f30;
+  --color-surface-container-high: #1c2a3e;
+  --color-surface-container-highest: #232f42;
+
+  /* Background */
+  --color-background: #0d1521;
+  --color-on-background: #d8e4f8;
+
+  /* Inverse */
+  --color-inverse-surface: #d8e4f8;
+  --color-inverse-on-surface: #243246;
+  --color-inverse-primary: #004ac6;
+
+  /* Outline */
+  --color-outline: #8d90a1;
+  --color-outline-variant: #2d3344;
+
+  /* Aliases */
+  --color-text-main: #d8e4f8;
+  --color-text-muted: #9aafc5;
+  --color-text-placeholder: #6a7080;
+  --color-border: #2d3344;
+  --color-white: #ffffff;
 }
