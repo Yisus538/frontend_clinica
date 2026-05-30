@@ -155,7 +155,10 @@ export const DashboardPage = () => {
     .reduce((sum, inv) => sum + Math.max(0, Number(inv.total) - getPaidAmount(inv)), 0);
 
   const metrics = buildMetrics(todayAppointments.length, activePatients.length, pendingTotal);
-  const recentPatients = patients.slice(0, 5).map(toPatientRow);
+  const recentPatients = [...patients]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5)
+    .map(toPatientRow);
   const agendaItems = todayAppointments
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
     .slice(0, 6)
