@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { PatientDirectoryTable } from "../features/patients/components/PatientDirectoryTable";
 import { patientsApi, toPatientRecord } from "../features/patients/api/patients.api";
 import { Link, useSearchParams } from "react-router";
@@ -8,19 +8,23 @@ export const PatientsPage = () => {
   const [patients, setPatients] = useState<PatientRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchParams] = useSearchParams();
-  const q = searchParams.get("q")?.toLowerCase() ?? "";
+  const q = searchParams.get("q") ?? "";
 
-  useEffect(() => {
+  const loadPatients = useCallback((search?: string) => {
+    setIsLoading(true);
     patientsApi
-      .findAll()
+      .findAll(search)
       .then((data) => setPatients(data.map(toPatientRecord)))
       .catch(() => setPatients([]))
       .finally(() => setIsLoading(false));
   }, []);
 
-  const filteredPatients = q
-    ? patients.filter((p) => p.name.toLowerCase().includes(q) || p.dni.toLowerCase().includes(q))
-    : patients;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadPatients(q || undefined);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [q, loadPatients]);
 
   const activeCount = patients.filter((p) => p.status === "Activo").length;
 
@@ -107,7 +111,7 @@ export const PatientsPage = () => {
           </span>
         </div>
       ) : (
-        <PatientDirectoryTable patients={filteredPatients} />
+        <PatientDirectoryTable patients={patients} />
       )}
     </div>
   );
