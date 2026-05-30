@@ -98,8 +98,25 @@ export function toAppointment(a: ApiAppointment, weekStart: Date): Appointment {
   };
 }
 
+export interface AppointmentFilters {
+  dentistId?: string;
+  patientId?: string;
+  status?: string;
+  from?: string;
+  to?: string;
+}
+
 export const appointmentsApi = {
-  findAll: () => apiClient.get<ApiAppointment[]>("/appointments"),
+  findAll: (filters?: AppointmentFilters) => {
+    const params = new URLSearchParams();
+    if (filters?.dentistId) params.set("dentistId", filters.dentistId);
+    if (filters?.patientId) params.set("patientId", filters.patientId);
+    if (filters?.status) params.set("status", filters.status);
+    if (filters?.from) params.set("from", filters.from);
+    if (filters?.to) params.set("to", filters.to);
+    const qs = params.toString();
+    return apiClient.get<ApiAppointment[]>(`/appointments${qs ? `?${qs}` : ""}`);
+  },
   findOne: (id: string) => apiClient.get<ApiAppointment>(`/appointments/${id}`),
   findByPatient: (patientId: string) =>
     apiClient.get<ApiAppointment[]>(`/appointments/patient/${patientId}`),

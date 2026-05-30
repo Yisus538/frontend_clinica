@@ -81,14 +81,15 @@ function isToday(isoDate: string): boolean {
 function buildMetrics(
   todayCount: number,
   activeCount: number,
-  pendingTotal: number
+  pendingTotal: number,
+  isOdontologo: boolean
 ): MetricCardData[] {
   return [
     {
       icon: "event",
       iconBg: "primary-fixed",
       iconColor: "on-primary-fixed",
-      label: "Citas de Hoy",
+      label: isOdontologo ? "Mis Citas de Hoy" : "Citas de Hoy",
       value: String(todayCount),
       badge: { text: "hoy", icon: "today", variant: "success" },
     },
@@ -124,20 +125,23 @@ export const DashboardPage = () => {
   const [appointments, setAppointments] = useState<ApiAppointment[]>([]);
   const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
 
+  const isOdontologo = user?.role === "ODONTOLOGO";
+  const dentistId = profile?.dentistId ?? undefined;
+
   useEffect(() => {
     patientsApi
       .findAll()
       .then(setPatients)
       .catch(() => setPatients([]));
     appointmentsApi
-      .findAll()
+      .findAll(isOdontologo && dentistId ? { dentistId } : undefined)
       .then(setAppointments)
       .catch(() => setAppointments([]));
     financesApi
       .findAllInvoices()
       .then(setInvoices)
       .catch(() => setInvoices([]));
-  }, []);
+  }, [isOdontologo, dentistId]);
 
   const greeting = getGreeting();
   const today = getFormattedDate();
@@ -154,7 +158,12 @@ export const DashboardPage = () => {
     )
     .reduce((sum, inv) => sum + Math.max(0, Number(inv.total) - getPaidAmount(inv)), 0);
 
-  const metrics = buildMetrics(todayAppointments.length, activePatients.length, pendingTotal);
+  const metrics = buildMetrics(
+    todayAppointments.length,
+    activePatients.length,
+    pendingTotal,
+    isOdontologo
+  );
   const recentPatients = [...patients]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5)
