@@ -384,7 +384,7 @@ export const PatientProfilePage = () => {
             className="w-full bg-primary hover:bg-on-primary-fixed-variant transition-colors duration-200 rounded-xl p-6 flex items-center justify-between text-on-primary group shadow-md cursor-pointer"
           >
             <div className="flex items-center gap-6">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-on-primary/20 flex items-center justify-center">
                 <span
                   className="material-symbols-outlined text-3xl"
                   style={{ fontVariationSettings: "'FILL' 1" }}

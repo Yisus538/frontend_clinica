@@ -949,7 +949,7 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
                     style={{ backgroundColor: color.hex }}
                   >
                     {color.id === "ausente" && (
-                      <span className="text-white font-bold text-[10px]">X</span>
+                      <span className="text-on-error font-bold text-[10px]">X</span>
                     )}
                   </div>
                   <span className="font-semibold text-on-surface">{color.label}</span>

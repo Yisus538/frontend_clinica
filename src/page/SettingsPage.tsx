@@ -316,7 +316,7 @@ export const SettingsPage = () => {
                 </div>
                 <button
                   onClick={handleAvatarClick}
-                  className="absolute bottom-0 right-0 bg-primary p-2 text-white hover:bg-primary-container transition-colors shadow-sm rounded-full cursor-pointer flex items-center justify-center"
+                  className="absolute bottom-0 right-0 bg-primary p-2 text-on-primary hover:bg-primary-container transition-colors shadow-sm rounded-full cursor-pointer flex items-center justify-center"
                 >
                   <span className="material-symbols-outlined text-[18px]">photo_camera</span>
                 </button>
@@ -543,7 +543,7 @@ export const SettingsPage = () => {
                   }`}
                 >
                   <div
-                    className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ${
+                    className={`absolute top-0.5 w-5 h-5 bg-surface-container-lowest rounded-full shadow-md transition-all duration-300 ${
                       twoFactorEnabled ? "left-[calc(100%-22px)]" : "left-0.5"
                     }`}
                   />
@@ -624,7 +624,7 @@ export const SettingsPage = () => {
                         }`}
                       >
                         <span
-                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-surface-container-lowest shadow transition-transform ${
                             row.enabled ? "translate-x-4" : "translate-x-0"
                           }`}
                         />
