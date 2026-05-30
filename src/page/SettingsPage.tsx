@@ -2,6 +2,44 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { settingsApi, type ProfileResponse } from "../features/settings/api/settings.api";
 import { useProfile } from "../features/settings/context/ProfileContext";
+import { useAuth } from "../features/auth/context/AuthContext";
+import {
+  dentistsApi,
+  type ApiDentist,
+  type DayOfWeek,
+} from "../features/dentists/api/dentists.api";
+
+const DAYS: { key: DayOfWeek; label: string }[] = [
+  { key: "monday", label: "Lunes" },
+  { key: "tuesday", label: "Martes" },
+  { key: "wednesday", label: "Miércoles" },
+  { key: "thursday", label: "Jueves" },
+  { key: "friday", label: "Viernes" },
+  { key: "saturday", label: "Sábado" },
+  { key: "sunday", label: "Domingo" },
+];
+
+interface DayRow {
+  enabled: boolean;
+  startTime: string;
+  endTime: string;
+}
+
+type ScheduleState = Record<DayOfWeek, DayRow>;
+
+function buildInitialSchedule(availabilities: ApiDentist["availabilities"]): ScheduleState {
+  const base = Object.fromEntries(
+    DAYS.map(({ key }) => [key, { enabled: false, startTime: "08:00", endTime: "17:00" }])
+  ) as ScheduleState;
+  for (const av of availabilities) {
+    base[av.dayOfWeek] = {
+      enabled: av.isActive,
+      startTime: av.startTime.slice(0, 5),
+      endTime: av.endTime.slice(0, 5),
+    };
+  }
+  return base;
+}
 
 const STATUS_LABEL: Record<string, string> = {
   active: "Activo",
@@ -51,6 +89,7 @@ function profileToForm(p: ProfileResponse): FormState {
 }
 
 export const SettingsPage = () => {
+  const { user } = useAuth();
   const { refresh: refreshGlobalProfile } = useProfile();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
@@ -58,6 +97,11 @@ export const SettingsPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isOdontologo = user?.role === "ODONTOLOGO";
+  const [dentist, setDentist] = useState<ApiDentist | null>(null);
+  const [schedule, setSchedule] = useState<ScheduleState | null>(null);
+  const [isSavingAvailability, setIsSavingAvailability] = useState(false);
 
   useEffect(() => {
     settingsApi
@@ -69,6 +113,56 @@ export const SettingsPage = () => {
       .catch(() => toast.error("No se pudo cargar el perfil"))
       .finally(() => setIsLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!isOdontologo) return;
+    dentistsApi
+      .getMe()
+      .then((d) => {
+        setDentist(d);
+        setSchedule(buildInitialSchedule(d.availabilities));
+      })
+      .catch(() => {});
+  }, [isOdontologo]);
+
+  const handleToggleDay = (day: DayOfWeek) => {
+    setSchedule((prev) =>
+      prev ? { ...prev, [day]: { ...prev[day], enabled: !prev[day].enabled } } : prev
+    );
+  };
+
+  const handleTimeChange = (day: DayOfWeek, field: "startTime" | "endTime", value: string) => {
+    setSchedule((prev) => (prev ? { ...prev, [day]: { ...prev[day], [field]: value } } : prev));
+  };
+
+  const handleSaveAvailability = async () => {
+    if (!dentist || !schedule) return;
+    const enabledDays = DAYS.filter(({ key }) => schedule[key].enabled);
+    for (const { key, label } of enabledDays) {
+      const { startTime, endTime } = schedule[key];
+      if (startTime >= endTime) {
+        toast.error(`${label}: el horario de inicio debe ser antes del de fin`);
+        return;
+      }
+    }
+    setIsSavingAvailability(true);
+    try {
+      await dentistsApi.setAvailability(
+        dentist.id,
+        enabledDays.map(({ key }) => ({
+          dayOfWeek: key,
+          startTime: schedule[key].startTime,
+          endTime: schedule[key].endTime,
+          isActive: true,
+        }))
+      );
+      toast.success("Disponibilidad guardada");
+    } catch {
+      toast.error("No se pudo guardar la disponibilidad");
+    } finally {
+      setIsSavingAvailability(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -458,6 +552,99 @@ export const SettingsPage = () => {
             </button>
           </div>
         </div>
+
+        {/* Availability — solo para ODONTOLOGO */}
+        {isOdontologo && schedule && (
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-8 shadow-sm flex flex-col gap-6">
+            <div className="flex items-center justify-between pb-4 border-b border-outline-variant">
+              <div>
+                <h2 className="font-h3 text-h3 text-on-surface">Disponibilidad horaria</h2>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                  Días y horarios en los que atendés pacientes
+                </p>
+              </div>
+              {DAYS.filter(({ key }) => schedule[key].enabled).length > 0 && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+                  {DAYS.filter(({ key }) => schedule[key].enabled).length} día
+                  {DAYS.filter(({ key }) => schedule[key].enabled).length !== 1 ? "s" : ""} activo
+                  {DAYS.filter(({ key }) => schedule[key].enabled).length !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {DAYS.map(({ key, label }) => {
+                const row = schedule[key];
+                return (
+                  <div
+                    key={key}
+                    className={`flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3 rounded-lg border transition-colors ${
+                      row.enabled
+                        ? "bg-surface-container border-primary/30"
+                        : "bg-surface-container-lowest border-outline-variant opacity-60"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 sm:w-32 shrink-0">
+                      <button
+                        role="switch"
+                        aria-checked={row.enabled}
+                        onClick={() => handleToggleDay(key)}
+                        className={`relative w-10 h-6 rounded-full transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                          row.enabled ? "bg-primary" : "bg-outline-variant"
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
+                            row.enabled ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                      <span
+                        className={`font-body-md text-body-md ${row.enabled ? "text-on-surface font-medium" : "text-on-surface-variant"}`}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-1">
+                      <input
+                        type="time"
+                        value={row.startTime}
+                        onChange={(e) => handleTimeChange(key, "startTime", e.target.value)}
+                        disabled={!row.enabled}
+                        className="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none font-body-md text-body-md text-on-surface disabled:bg-surface-container disabled:text-on-surface-variant disabled:cursor-default transition-all"
+                      />
+                      <span className="font-body-sm text-body-sm text-on-surface-variant shrink-0">
+                        hasta
+                      </span>
+                      <input
+                        type="time"
+                        value={row.endTime}
+                        onChange={(e) => handleTimeChange(key, "endTime", e.target.value)}
+                        disabled={!row.enabled}
+                        className="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-bright focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none font-body-md text-body-md text-on-surface disabled:bg-surface-container disabled:text-on-surface-variant disabled:cursor-default transition-all"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-outline-variant">
+              <button
+                onClick={handleSaveAvailability}
+                disabled={isSavingAvailability}
+                className="h-10 px-6 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm flex items-center gap-2 hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-60"
+              >
+                {isSavingAvailability && (
+                  <span className="material-symbols-outlined text-[16px] animate-spin">
+                    progress_activity
+                  </span>
+                )}
+                Guardar disponibilidad
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

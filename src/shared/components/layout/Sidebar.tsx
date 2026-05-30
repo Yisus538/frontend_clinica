@@ -35,12 +35,6 @@ const ALL_NAV_ITEMS = [
     href: "/dashboard/finanzas",
     roles: ["SUPER_ADMIN", "ODONTOLOGO"],
   },
-  {
-    icon: "person",
-    label: "Mi Perfil",
-    href: "/dashboard/mi-perfil",
-    roles: ["ODONTOLOGO"],
-  },
 ];
 
 const ADMIN_ITEMS = [
