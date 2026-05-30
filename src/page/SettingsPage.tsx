@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { settingsApi, type ProfileResponse } from "../features/settings/api/settings.api";
 import { useProfile } from "../features/settings/context/ProfileContext";
+import { AvatarCropModal } from "../shared/components/AvatarCropModal";
 import { useAuth } from "../features/auth/context/AuthContext";
 import {
   dentistsApi,
@@ -97,6 +98,8 @@ export const SettingsPage = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
 
   const isOdontologo = user?.role === "ODONTOLOGO";
   const [dentist, setDentist] = useState<ApiDentist | null>(null);
@@ -194,25 +197,31 @@ export const SettingsPage = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setCropSrc(URL.createObjectURL(file));
+    e.target.value = "";
+  };
 
-    const localPreview = URL.createObjectURL(file);
-    setForm((prev) => prev && { ...prev, avatarPreview: localPreview });
-
+  const handleCropConfirm = async (blob: Blob) => {
+    setIsUploadingAvatar(true);
     try {
+      const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+      const preview = URL.createObjectURL(blob);
+      setForm((prev) => prev && { ...prev, avatarPreview: preview });
       const { avatarUrl } = await settingsApi.uploadAvatar(file);
       setForm((prev) => prev && { ...prev, avatarUrl, avatarPreview: null });
       setProfile((prev) => prev && { ...prev, avatarUrl });
       await refreshGlobalProfile();
       toast.success("Foto de perfil actualizada");
+      setCropSrc(null);
     } catch {
       setForm((prev) => prev && { ...prev, avatarPreview: null });
       toast.error("No se pudo subir la foto");
+    } finally {
+      setIsUploadingAvatar(false);
     }
-
-    e.target.value = "";
   };
 
   const handleSave = async () => {
@@ -647,6 +656,15 @@ export const SettingsPage = () => {
           </div>
         )}
       </div>
+
+      {cropSrc && (
+        <AvatarCropModal
+          imageSrc={cropSrc}
+          isUploading={isUploadingAvatar}
+          onConfirm={handleCropConfirm}
+          onCancel={() => setCropSrc(null)}
+        />
+      )}
     </div>
   );
 };
