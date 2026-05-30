@@ -135,7 +135,7 @@ export const PatientDirectoryTable = ({ patients }: PatientDirectoryTableProps) 
           >
             <span className="material-symbols-outlined">chevron_left</span>
           </button>
-          <button className="w-8 h-8 rounded-md bg-primary-fixed text-primary font-label-sm flex items-center justify-center cursor-pointer">
+          <button className="w-8 h-8 rounded-md bg-primary text-on-primary font-label-sm flex items-center justify-center cursor-pointer">
             1
           </button>
           <button className="w-8 h-8 rounded-md hover:bg-surface text-on-surface-variant font-label-sm flex items-center justify-center transition-colors cursor-pointer">
