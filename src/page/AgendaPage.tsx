@@ -12,6 +12,8 @@ import {
   type ApiAppointment,
 } from "../features/agenda/api/appointments.api";
 import { RegisterPaymentModal } from "../features/finances/components/RegisterPaymentModal";
+import { useAuth } from "../features/auth/context/AuthContext";
+import { useProfile } from "../features/settings/context/ProfileContext";
 import type { Appointment, ViewMode, WeekDay } from "../features/agenda/types/agenda.types";
 
 /* ── Helpers ── */
@@ -41,11 +43,16 @@ function getWeekDays(baseDate: Date): WeekDay[] {
 }
 
 export const AgendaPage = () => {
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [apiAppointments, setApiAppointments] = useState<ApiAppointment[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [paymentAppointment, setPaymentAppointment] = useState<Appointment | null>(null);
+
+  const isOdontologo = user?.role === "ODONTOLOGO";
+  const dentistId = profile?.dentistId ?? undefined;
 
   const currentWeekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
@@ -59,10 +66,10 @@ export const AgendaPage = () => {
 
   const loadAppointments = useCallback(() => {
     appointmentsApi
-      .findAll()
+      .findAll(isOdontologo && dentistId ? { dentistId } : undefined)
       .then(setApiAppointments)
       .catch(() => setApiAppointments([]));
-  }, []);
+  }, [isOdontologo, dentistId]);
 
   useEffect(() => {
     loadAppointments();

@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from "react-router";
 import type { TopBarProps } from "../../../features/dashboard/types/dashboard.types";
 import { SIDEBAR_WIDTH_COLLAPSED, SIDEBAR_WIDTH_EXPANDED } from "./Sidebar";
 import { useAuth } from "../../../features/auth/context/AuthContext";
+import { useProfile } from "../../../features/settings/context/ProfileContext";
 import {
   notificationsApi,
   type ApiNotification,
@@ -26,6 +27,7 @@ function timeAgo(date: string): string {
 
 export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
   const { user } = useAuth();
+  const { profile } = useProfile();
   const { pathname } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const sidebarWidth = sidebarExpanded ? SIDEBAR_WIDTH_EXPANDED : SIDEBAR_WIDTH_COLLAPSED;
@@ -38,6 +40,8 @@ export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
   const initials = user
     ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase() || "U"
     : "U";
+  const displayName = profile?.nickname || (user ? user.firstName : "");
+  const avatarUrl = profile?.avatarUrl ?? null;
 
   const searchConfig = SEARCH_CONFIG.find(
     (c) => pathname.startsWith(c.prefix) && (pathname === c.prefix || pathname === c.prefix + "/")
@@ -224,11 +228,17 @@ export const TopBar = ({ sidebarExpanded = false }: TopBarProps) => {
 
         {/* Profile */}
         <div className="flex items-center gap-3" id="profile-menu">
-          <div className="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-sm font-bold text-xs border border-outline-variant">
-            {initials}
+          <div className="w-8 h-8 rounded-full overflow-hidden border border-outline-variant shrink-0">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-primary text-on-primary flex items-center justify-center font-label-sm font-bold text-xs">
+                {initials}
+              </div>
+            )}
           </div>
           <span className="hidden md:block text-body-sm text-on-surface font-medium">
-            {user ? `${user.firstName} ${user.lastName}` : ""}
+            {displayName}
           </span>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from "react-router";
 import { toast } from "sonner";
 import { ClinicalHistoryModal } from "../features/patients/components/clinical-history/ClinicalHistoryModal";
 import { RegisterPaymentModal } from "../features/finances/components/RegisterPaymentModal";
+import { TreatmentPlansSection } from "../features/treatments/components/TreatmentPlansSection";
 import { patientsApi, type ApiPatient } from "../features/patients/api/patients.api";
 import {
   financesApi,
@@ -679,6 +680,9 @@ export const PatientProfilePage = () => {
               </>
             )}
           </div>
+
+          {/* Treatment Plans */}
+          <TreatmentPlansSection patientId={patient.id} appointments={appointments} />
 
           {/* Payment History */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
