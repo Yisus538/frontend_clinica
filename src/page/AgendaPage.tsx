@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { CalendarHeader } from "../features/agenda/components/CalendarHeader";
@@ -57,12 +57,16 @@ export const AgendaPage = () => {
     return d;
   }, [currentDate]);
 
-  useEffect(() => {
+  const loadAppointments = useCallback(() => {
     appointmentsApi
       .findAll()
       .then(setApiAppointments)
       .catch(() => setApiAppointments([]));
   }, []);
+
+  useEffect(() => {
+    loadAppointments();
+  }, [currentDate, loadAppointments]);
 
   const appointments = useMemo(
     () => apiAppointments.map((a) => toAppointment(a, weekStart)),
@@ -164,6 +168,7 @@ export const AgendaPage = () => {
         onPrev={handlePrev}
         onNext={handleNext}
         onToday={handleToday}
+        onRefresh={loadAppointments}
       />
 
       {/* Calendar Grid */}
