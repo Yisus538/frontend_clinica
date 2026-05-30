@@ -16,4 +16,6 @@ export const authApi = {
   login: (dto: LoginDto) => apiClient.post<LoginResponse>("/auth/login", dto),
   logout: () => apiClient.post<{ message: string }>("/auth/logout", {}),
   me: () => apiClient.get<AuthUser>("/auth/me"),
+  forgotPassword: (email: string) =>
+    apiClient.post<{ message: string }>("/auth/forgot-password", { email }),
 };
