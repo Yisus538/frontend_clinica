@@ -394,7 +394,7 @@ export const PatientProfilePage = () => {
               </div>
               <div className="text-left">
                 <h2 className="font-h3 text-h3 font-bold mb-1">Abrir Historial Clínico Médico</h2>
-                <p className="font-body-sm text-body-sm text-primary-fixed-dim">
+                <p className="font-body-sm text-body-sm text-on-primary/75">
                   Ver odontograma, periodontograma y notas clínicas completas.
                 </p>
               </div>
