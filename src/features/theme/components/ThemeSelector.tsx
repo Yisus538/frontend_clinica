@@ -1,4 +1,5 @@
 import { useTheme, type Theme } from "../context/ThemeContext";
+import { settingsApi } from "../../settings/api/settings.api";
 
 const OPTIONS: { value: Theme; label: string; icon: string }[] = [
   { value: "light", label: "Claro", icon: "light_mode" },
@@ -9,6 +10,11 @@ const OPTIONS: { value: Theme; label: string; icon: string }[] = [
 export const ThemeSelector = () => {
   const { theme, setTheme } = useTheme();
 
+  const handleChange = (next: Theme) => {
+    setTheme(next);
+    settingsApi.updateProfile({ theme: next }).catch(() => {});
+  };
+
   return (
     <div className="flex items-center gap-1 p-1 rounded-xl bg-surface-container border border-outline-variant w-fit">
       {OPTIONS.map((opt) => {
@@ -16,7 +22,7 @@ export const ThemeSelector = () => {
         return (
           <button
             key={opt.value}
-            onClick={() => setTheme(opt.value)}
+            onClick={() => handleChange(opt.value)}
             aria-pressed={active}
             title={opt.label}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg font-label-sm text-label-sm transition-all cursor-pointer ${
