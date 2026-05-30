@@ -126,6 +126,24 @@ export interface RegisterPaymentPayload {
   reference?: string;
 }
 
+export interface ApiEgreso {
+  id: string;
+  description: string;
+  amount: number;
+  category: string | null;
+  expenseDate: string;
+  notes: string | null;
+  createdAt: string;
+}
+
+export interface CreateEgresoDto {
+  description: string;
+  amount: number;
+  category?: string;
+  expenseDate: string;
+  notes?: string;
+}
+
 export const financesApi = {
   findAllInvoices: () => apiClient.get<ApiInvoice[]>("/finances/invoices"),
   findInvoicesByPatient: (patientId: string) =>
@@ -135,4 +153,6 @@ export const financesApi = {
   registerPayment: (invoiceId: string, payload: RegisterPaymentPayload) =>
     apiClient.post<{ id: string }>(`/finances/invoices/${invoiceId}/payments`, payload),
   findPaymentMethods: () => apiClient.get<ApiPaymentMethod[]>("/finances/payment-methods"),
+  findEgresos: () => apiClient.get<ApiEgreso[]>("/finances/egresos"),
+  createEgreso: (dto: CreateEgresoDto) => apiClient.post<ApiEgreso>("/finances/egresos", dto),
 };
