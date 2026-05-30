@@ -342,7 +342,7 @@ export const PatientProfilePage = () => {
                 <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">
                   calendar_add_on
                 </span>
-                <span className="font-label-sm text-[10px] text-center leading-tight">
+                <span className="text-xs text-on-surface-variant text-center leading-tight">
                   Nueva Cita
                 </span>
               </button>
@@ -355,7 +355,7 @@ export const PatientProfilePage = () => {
                 <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">
                   prescriptions
                 </span>
-                <span className="font-label-sm text-[10px] text-center leading-tight">
+                <span className="text-xs text-on-surface-variant text-center leading-tight">
                   Nueva Receta
                 </span>
               </button>
@@ -368,7 +368,7 @@ export const PatientProfilePage = () => {
                 <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">
                   upload_file
                 </span>
-                <span className="font-label-sm text-[10px] text-center leading-tight">
+                <span className="text-xs text-on-surface-variant text-center leading-tight">
                   Subir Doc
                 </span>
               </button>
@@ -381,7 +381,7 @@ export const PatientProfilePage = () => {
           {/* Clinical History Button */}
           <button
             onClick={() => setIsClinicalHistoryModalOpen(true)}
-            className="w-full bg-primary hover:bg-on-primary-fixed-variant transition-colors duration-200 rounded-xl p-6 flex items-center justify-between text-on-primary group shadow-md cursor-pointer"
+            className="w-full bg-primary hover:opacity-90 transition-opacity duration-200 rounded-xl p-6 flex items-center justify-between text-on-primary group shadow-md cursor-pointer"
           >
             <div className="flex items-center gap-6">
               <div className="w-12 h-12 rounded-full bg-on-primary/20 flex items-center justify-center">
