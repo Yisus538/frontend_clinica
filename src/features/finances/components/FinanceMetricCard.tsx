@@ -20,14 +20,12 @@ export const FinanceMetricCard = ({
         <span className="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
           {label}
         </span>
-        <span className={`material-symbols-outlined ${iconColorClass}`}>
-          {icon}
-        </span>
+        <span className={`material-symbols-outlined ${iconColorClass}`}>{icon}</span>
       </div>
       <div className="flex items-end justify-between">
         <span
           className={`font-h2 text-h2 ${
-            isHighlighted ? "text-primary-container font-bold" : "text-on-surface"
+            isHighlighted ? "text-primary font-bold" : "text-on-surface"
           }`}
         >
           {value}
@@ -36,9 +34,7 @@ export const FinanceMetricCard = ({
           <span
             className={`font-caption text-caption flex items-center px-2 py-1 rounded-full ${trend.colorClass} ${trend.bgClass}`}
           >
-            <span className="material-symbols-outlined text-[14px] mr-1">
-              {trend.icon}
-            </span>
+            <span className="material-symbols-outlined text-[14px] mr-1">{trend.icon}</span>
             {trend.value}
           </span>
         )}

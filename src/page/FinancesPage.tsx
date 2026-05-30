@@ -94,7 +94,7 @@ export const FinancesPage = () => {
       label: "Balance Neto",
       value: `$${balanceNeto.toLocaleString("es-AR", { minimumFractionDigits: 2 })}`,
       icon: "account_balance",
-      iconColorClass: "text-primary-container",
+      iconColorClass: "text-primary",
       isHighlighted: true,
     },
   ];
@@ -145,7 +145,7 @@ export const FinancesPage = () => {
         <h1 className="font-h1 text-h1 text-on-surface">Finanzas</h1>
         <button
           onClick={() => setShowEgresoForm(true)}
-          className="h-10 px-6 bg-primary-container text-on-primary rounded font-label-md text-label-md flex items-center gap-3 hover:bg-primary transition-colors cursor-pointer"
+          className="h-10 px-6 bg-primary text-on-primary rounded font-label-md text-label-md flex items-center gap-3 hover:opacity-90 transition-opacity cursor-pointer"
         >
           <span className="material-symbols-outlined text-[18px]">add</span>
           Registrar Egreso

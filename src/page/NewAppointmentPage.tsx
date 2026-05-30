@@ -256,7 +256,7 @@ export const NewAppointmentPage = () => {
           {/* ── Section 1: Paciente ─────────────────────────────────────── */}
           <div className="mb-10">
             <h3 className="font-h3 text-h3 text-on-surface border-b border-outline-variant pb-2 mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary-container">person</span>
+              <span className="material-symbols-outlined text-primary">person</span>
               Información del Paciente
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
@@ -396,9 +396,7 @@ export const NewAppointmentPage = () => {
           {/* ── Section 2: Tratamiento ──────────────────────────────────── */}
           <div className="mb-10">
             <h3 className="font-h3 text-h3 text-on-surface border-b border-outline-variant pb-2 mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary-container">
-                medical_services
-              </span>
+              <span className="material-symbols-outlined text-primary">medical_services</span>
               Tratamiento
               <span className="font-caption text-caption text-on-surface-variant font-normal ml-1">
                 (opcional)
@@ -532,9 +530,7 @@ export const NewAppointmentPage = () => {
           {/* ── Section 3: Horario ──────────────────────────────────────── */}
           <div className="mb-10">
             <h3 className="font-h3 text-h3 text-on-surface border-b border-outline-variant pb-2 mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary-container">
-                calendar_month
-              </span>
+              <span className="material-symbols-outlined text-primary">calendar_month</span>
               Horario
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">

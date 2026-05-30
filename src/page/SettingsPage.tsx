@@ -316,7 +316,7 @@ export const SettingsPage = () => {
                 </div>
                 <button
                   onClick={handleAvatarClick}
-                  className="absolute bottom-0 right-0 bg-primary p-2 text-on-primary hover:bg-primary-container transition-colors shadow-sm rounded-full cursor-pointer flex items-center justify-center"
+                  className="absolute bottom-0 right-0 bg-primary p-2 text-on-primary hover:bg-primary-hover transition-colors shadow-sm rounded-full cursor-pointer flex items-center justify-center"
                 >
                   <span className="material-symbols-outlined text-[18px]">photo_camera</span>
                 </button>
@@ -511,7 +511,7 @@ export const SettingsPage = () => {
               </div>
               <button
                 onClick={handleChangePassword}
-                className="h-10 px-6 rounded-full border border-primary text-primary font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-colors cursor-pointer"
+                className="h-10 px-6 rounded-full border border-primary text-primary font-label-md text-label-md hover:bg-primary-hover hover:text-on-primary-container transition-colors cursor-pointer"
               >
                 Cambiar Contraseña
               </button>
