@@ -205,6 +205,7 @@ export const SettingsPage = () => {
       const { avatarUrl } = await settingsApi.uploadAvatar(file);
       setForm((prev) => prev && { ...prev, avatarUrl, avatarPreview: null });
       setProfile((prev) => prev && { ...prev, avatarUrl });
+      await refreshGlobalProfile();
       toast.success("Foto de perfil actualizada");
     } catch {
       setForm((prev) => prev && { ...prev, avatarPreview: null });
