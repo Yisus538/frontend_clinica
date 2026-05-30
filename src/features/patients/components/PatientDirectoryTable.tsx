@@ -8,6 +8,12 @@ const STATUS_STYLES: Record<PatientStatus, string> = {
   Inactivo: "bg-tertiary-fixed-dim text-on-tertiary-fixed-variant",
 };
 
+const STATUS_DOT: Record<PatientStatus, string> = {
+  "En Tratamiento": "bg-primary",
+  Activo: "bg-secondary",
+  Inactivo: "bg-outline",
+};
+
 interface PatientDirectoryTableProps {
   patients: PatientRecord[];
 }
@@ -102,8 +108,11 @@ export const PatientDirectoryTable = ({ patients }: PatientDirectoryTableProps) 
                 </td>
                 <td className="py-4 px-6">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[patient.status]}`}
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[patient.status]}`}
                   >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full inline-block ${STATUS_DOT[patient.status]}`}
+                    />
                     {patient.status}
                   </span>
                 </td>
