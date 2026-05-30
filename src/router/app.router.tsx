@@ -12,6 +12,7 @@ import { NewTreatmentPage } from "../page/NewTreatmentPage";
 import { EditTreatmentPage } from "../page/EditTreatmentPage";
 import { FinancesPage } from "../page/FinancesPage";
 import { SettingsPage } from "../page/SettingsPage";
+import { MiPerfilPage } from "../page/MiPerfilPage";
 import { DashboardLayout } from "../shared/components/layout/DashboardLayout";
 import { ProtectedRoute } from "../shared/components/ProtectedRoute";
 
@@ -42,6 +43,7 @@ export const AppRouter = createBrowserRouter([
           { path: "tratamientos/nuevo", element: <NewTreatmentPage /> },
           { path: "tratamientos/:id/editar", element: <EditTreatmentPage /> },
           { path: "finanzas", element: <FinancesPage /> },
+          { path: "mi-perfil", element: <MiPerfilPage /> },
           { path: "configuracion", element: <SettingsPage /> },
         ],
       },
