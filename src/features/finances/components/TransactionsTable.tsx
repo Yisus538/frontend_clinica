@@ -23,7 +23,7 @@ export const TransactionsTable = ({ transactions }: TransactionsTableProps) => {
     <div className="bg-surface-container-lowest rounded-lg border border-outline-variant overflow-hidden">
       <div className="p-6 border-b border-outline-variant bg-surface flex justify-between items-center">
         <h3 className="font-h3 text-h3 text-on-surface">Historial de Transacciones</h3>
-        <button className="text-primary-container hover:text-primary font-label-sm text-label-sm flex items-center gap-1 cursor-pointer">
+        <button className="text-primary hover:text-primary-hover font-label-sm text-label-sm flex items-center gap-1 cursor-pointer">
           Ver todas <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
         </button>
       </div>

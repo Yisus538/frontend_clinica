@@ -14,7 +14,7 @@ export const StatusBadge = ({
   inactiveLabel = "Inactivo",
 }: StatusBadgeProps) => {
   return active ? (
-    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-fixed text-caption font-medium">
+    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-caption font-medium">
       <span className="w-1.5 h-1.5 rounded-full bg-secondary inline-block" />
       {activeLabel}
     </span>

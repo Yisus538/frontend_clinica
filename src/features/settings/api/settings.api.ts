@@ -13,6 +13,7 @@ export interface ProfileResponse {
   status: string;
   licenseNumber: string | null;
   dentistId: string | null;
+  theme: string;
 }
 
 export interface UpdateProfilePayload {
@@ -22,6 +23,7 @@ export interface UpdateProfilePayload {
   licenseNumber?: string;
   specialty?: string;
   bio?: string;
+  theme?: string;
 }
 
 export const settingsApi = {

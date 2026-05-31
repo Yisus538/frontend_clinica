@@ -42,9 +42,6 @@ export const PatientTable = ({ patients }: PatientTableProps) => {
                   PACIENTE
                 </th>
                 <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold">
-                  TRATAMIENTO
-                </th>
-                <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold">
                   ESTADO
                 </th>
                 <th className="py-3 px-6 font-label-md text-label-md text-on-surface-variant font-semibold text-right">
@@ -74,9 +71,6 @@ export const PatientTable = ({ patients }: PatientTableProps) => {
                         </div>
                       </div>
                     </div>
-                  </td>
-                  <td className="py-6 px-6 font-body-sm text-body-sm text-on-surface">
-                    {patient.treatment}
                   </td>
                   <td className="py-6 px-6">
                     <span

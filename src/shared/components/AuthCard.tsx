@@ -9,11 +9,7 @@ interface AuthCardProps {
   maxWidth?: string;
 }
 
-export const AuthCard = ({
-  children,
-  footer,
-  maxWidth = "480px",
-}: AuthCardProps) => (
+export const AuthCard = ({ children, footer, maxWidth = "480px" }: AuthCardProps) => (
   <div
     className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
     style={{ background: "var(--color-surface)" }}
@@ -21,10 +17,10 @@ export const AuthCard = ({
     {/* Fondo decorativo */}
     <div
       className="absolute inset-0 z-0 bg-cover bg-center"
-      style={{ 
+      style={{
         backgroundImage: `url('${BG_URL}')`,
         animation: "fadeIn 1s ease-out forwards",
-        opacity: 0
+        opacity: 0,
       }}
       aria-hidden="true"
     />
@@ -34,7 +30,7 @@ export const AuthCard = ({
       className="relative z-10 w-full mx-4 flex flex-col items-center px-12 py-12 shadow-sm animate-fade-in-up"
       style={{
         maxWidth,
-        background: "var(--color-white)",
+        background: "var(--color-surface-container-lowest)",
         borderRadius: "var(--radius-card)",
         border: "1px solid var(--color-border)",
       }}
@@ -43,8 +39,6 @@ export const AuthCard = ({
     </main>
 
     {/* Footer opcional */}
-    {footer && (
-      <div className="relative z-10 mt-6 text-center">{footer}</div>
-    )}
+    {footer && <div className="relative z-10 mt-6 text-center">{footer}</div>}
   </div>
 );

@@ -3,7 +3,7 @@ import type { ButtonProps } from "../types/button.type";
 const VARIANTS = {
   primary: {
     background: "var(--color-primary)",
-    color: "#fff",
+    color: "var(--color-on-primary)",
     border: "transparent",
     hoverBg: "var(--color-primary-hover)",
   },
@@ -56,9 +56,7 @@ export const Button = ({
       {...props}
     >
       {isLoading && (
-        <span className="material-symbols-outlined text-lg animate-spin">
-          progress_activity
-        </span>
+        <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
       )}
       {isLoading ? loadingLabel : children}
     </button>

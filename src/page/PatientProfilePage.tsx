@@ -3,6 +3,7 @@ import { useNavigate, useParams, Link } from "react-router";
 import { toast } from "sonner";
 import { ClinicalHistoryModal } from "../features/patients/components/clinical-history/ClinicalHistoryModal";
 import { RegisterPaymentModal } from "../features/finances/components/RegisterPaymentModal";
+import { TreatmentPlansSection } from "../features/treatments/components/TreatmentPlansSection";
 import { patientsApi, type ApiPatient } from "../features/patients/api/patients.api";
 import {
   financesApi,
@@ -10,6 +11,7 @@ import {
   type ApiInvoice,
   type BackendInvoiceStatus,
 } from "../features/finances/api/finances.api";
+import { appointmentsApi, type ApiAppointment } from "../features/agenda/api/appointments.api";
 import { formatDate } from "../shared/utils/date";
 
 const INVOICE_STATUS_LABEL: Record<BackendInvoiceStatus, string> = {
@@ -28,6 +30,24 @@ const INVOICE_STATUS_CLASS: Record<BackendInvoiceStatus, string> = {
   partially_paid: "bg-tertiary-container text-on-tertiary-container",
   cancelled: "bg-surface-container text-on-surface-variant",
   overdue: "bg-error-container text-on-error-container",
+};
+
+const APPT_STATUS_LABEL: Record<string, string> = {
+  pending: "Pendiente",
+  confirmed: "Confirmada",
+  in_progress: "En curso",
+  completed: "Completada",
+  cancelled: "Cancelada",
+  no_show: "No asistió",
+};
+
+const APPT_STATUS_CLASS: Record<string, string> = {
+  pending: "bg-primary-container text-on-primary-container",
+  confirmed: "bg-secondary-container text-on-secondary-container",
+  in_progress: "bg-secondary-container text-on-secondary-container",
+  completed: "bg-tertiary-container text-on-tertiary-container",
+  cancelled: "bg-error-container text-on-error-container",
+  no_show: "bg-error-container text-on-error-container",
 };
 
 const STATUS_LABEL: Record<ApiPatient["status"], string> = {
@@ -83,6 +103,8 @@ export const PatientProfilePage = () => {
   const [isClinicalHistoryModalOpen, setIsClinicalHistoryModalOpen] = useState(false);
   const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
   const [paymentInvoice, setPaymentInvoice] = useState<ApiInvoice | null>(null);
+  const [appointments, setAppointments] = useState<ApiAppointment[]>([]);
+  const [showAllAppointments, setShowAllAppointments] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -106,6 +128,16 @@ export const PatientProfilePage = () => {
 
   useEffect(() => {
     loadInvoices();
+    if (!id) return;
+    appointmentsApi
+      .findByPatient(id)
+      .then((data) => {
+        const sorted = [...data].sort(
+          (a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime()
+        );
+        setAppointments(sorted);
+      })
+      .catch(() => setAppointments([]));
   }, [id]);
 
   if (isLoading) {
@@ -310,23 +342,33 @@ export const PatientProfilePage = () => {
                 <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">
                   calendar_add_on
                 </span>
-                <span className="font-label-sm text-[10px] text-center leading-tight">
+                <span className="text-xs text-on-surface-variant text-center leading-tight">
                   Nueva Cita
                 </span>
               </button>
-              <button className="bg-surface-container-lowest border border-outline-variant hover:border-primary hover:bg-surface-container-low transition-all duration-200 rounded-lg aspect-square flex flex-col items-center justify-center p-2 text-primary group cursor-pointer shadow-sm">
+              <button
+                onClick={() =>
+                  toast.info("Módulo de recetas en desarrollo - próximamente disponible")
+                }
+                className="bg-surface-container-lowest border border-outline-variant hover:border-primary hover:bg-surface-container-low transition-all duration-200 rounded-lg aspect-square flex flex-col items-center justify-center p-2 text-primary group cursor-pointer shadow-sm"
+              >
                 <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">
                   prescriptions
                 </span>
-                <span className="font-label-sm text-[10px] text-center leading-tight">
+                <span className="text-xs text-on-surface-variant text-center leading-tight">
                   Nueva Receta
                 </span>
               </button>
-              <button className="bg-surface-container-lowest border border-outline-variant hover:border-primary hover:bg-surface-container-low transition-all duration-200 rounded-lg aspect-square flex flex-col items-center justify-center p-2 text-primary group cursor-pointer shadow-sm">
+              <button
+                onClick={() =>
+                  toast.info("Módulo de documentos en desarrollo - próximamente disponible")
+                }
+                className="bg-surface-container-lowest border border-outline-variant hover:border-primary hover:bg-surface-container-low transition-all duration-200 rounded-lg aspect-square flex flex-col items-center justify-center p-2 text-primary group cursor-pointer shadow-sm"
+              >
                 <span className="material-symbols-outlined mb-2 group-hover:scale-110 transition-transform">
                   upload_file
                 </span>
-                <span className="font-label-sm text-[10px] text-center leading-tight">
+                <span className="text-xs text-on-surface-variant text-center leading-tight">
                   Subir Doc
                 </span>
               </button>
@@ -339,10 +381,10 @@ export const PatientProfilePage = () => {
           {/* Clinical History Button */}
           <button
             onClick={() => setIsClinicalHistoryModalOpen(true)}
-            className="w-full bg-primary hover:bg-on-primary-fixed-variant transition-colors duration-200 rounded-xl p-6 flex items-center justify-between text-on-primary group shadow-md cursor-pointer"
+            className="w-full bg-primary hover:opacity-90 transition-opacity duration-200 rounded-xl p-6 flex items-center justify-between text-on-primary group shadow-md cursor-pointer"
           >
             <div className="flex items-center gap-6">
-              <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-on-primary/20 flex items-center justify-center">
                 <span
                   className="material-symbols-outlined text-3xl"
                   style={{ fontVariationSettings: "'FILL' 1" }}
@@ -352,7 +394,7 @@ export const PatientProfilePage = () => {
               </div>
               <div className="text-left">
                 <h2 className="font-h3 text-h3 font-bold mb-1">Abrir Historial Clínico Médico</h2>
-                <p className="font-body-sm text-body-sm text-primary-fixed-dim">
+                <p className="font-body-sm text-body-sm text-on-primary/75">
                   Ver odontograma, periodontograma y notas clínicas completas.
                 </p>
               </div>
@@ -554,6 +596,94 @@ export const PatientProfilePage = () => {
               </div>
             </div>
           </div>
+          {/* Appointment History */}
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-6 pb-3 border-b border-outline-variant">
+              <h3 className="font-h3 text-h3 text-on-surface">Historial de Citas</h3>
+              <button
+                onClick={() =>
+                  navigate("/dashboard/agenda/nueva-cita", {
+                    state: {
+                      patientId: patient.id,
+                      patientName: fullName,
+                      patientDni: patient.dni,
+                    },
+                  })
+                }
+                className="h-9 px-3 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm flex items-center gap-1.5 hover:opacity-90 transition-opacity cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[16px]">add</span>
+                Nueva Cita
+              </button>
+            </div>
+
+            {appointments.length === 0 ? (
+              <div className="flex flex-col items-center py-8 gap-2 text-on-surface-variant">
+                <span className="material-symbols-outlined text-4xl">calendar_month</span>
+                <p className="font-body-sm text-body-sm">Sin citas registradas</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-2">
+                  {(showAllAppointments ? appointments : appointments.slice(0, 10)).map((apt) => {
+                    const date = new Date(apt.scheduledAt);
+                    const dateStr = formatDate(apt.scheduledAt, {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    });
+                    const timeStr = date.toLocaleTimeString("es-AR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+                    return (
+                      <div
+                        key={apt.id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3 rounded-lg bg-surface-container border border-outline-variant"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex flex-col items-center shrink-0 w-10 text-center">
+                            <span className="font-label-sm text-label-sm text-on-surface-variant leading-tight">
+                              {dateStr}
+                            </span>
+                            <span className="font-caption text-caption text-outline">
+                              {timeStr}
+                            </span>
+                          </div>
+                          <div className="w-px h-8 bg-outline-variant shrink-0" />
+                          <div className="flex flex-col gap-0.5 min-w-0">
+                            <p className="font-body-md text-body-md text-on-surface font-medium truncate">
+                              {apt.notes ?? "Consulta"}
+                            </p>
+                            <p className="font-caption text-caption text-on-surface-variant">
+                              {apt.durationMinutes} min
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full font-label-sm text-label-sm shrink-0 ${APPT_STATUS_CLASS[apt.status] ?? "bg-surface-container text-on-surface-variant"}`}
+                        >
+                          {APPT_STATUS_LABEL[apt.status] ?? apt.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {appointments.length > 10 && (
+                  <button
+                    onClick={() => setShowAllAppointments((v) => !v)}
+                    className="mt-4 w-full py-2 text-primary font-label-sm text-label-sm hover:bg-surface-container rounded-lg transition-colors cursor-pointer"
+                  >
+                    {showAllAppointments ? "Mostrar menos" : `Ver todas (${appointments.length})`}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* Treatment Plans */}
+          <TreatmentPlansSection patientId={patient.id} appointments={appointments} />
+
           {/* Payment History */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6 pb-3 border-b border-outline-variant">
@@ -657,6 +787,7 @@ export const PatientProfilePage = () => {
       <ClinicalHistoryModal
         isOpen={isClinicalHistoryModalOpen}
         onClose={() => setIsClinicalHistoryModalOpen(false)}
+        patientId={patient.id}
       />
 
       {paymentInvoice && (
