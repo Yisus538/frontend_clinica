@@ -11,7 +11,6 @@ import {
   REVERSE_STATUS_MAP,
   type ApiAppointment,
 } from "../features/agenda/api/appointments.api";
-import { RegisterPaymentModal } from "../features/finances/components/RegisterPaymentModal";
 import { useAuth } from "../features/auth/context/AuthContext";
 import { useProfile } from "../features/settings/context/ProfileContext";
 import type { Appointment, ViewMode, WeekDay } from "../features/agenda/types/agenda.types";
@@ -49,7 +48,6 @@ export const AgendaPage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [apiAppointments, setApiAppointments] = useState<ApiAppointment[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const [paymentAppointment, setPaymentAppointment] = useState<Appointment | null>(null);
 
   const isOdontologo = user?.role === "ODONTOLOGO";
   const dentistId = profile?.dentistId ?? undefined;
@@ -160,9 +158,15 @@ export const AgendaPage = () => {
       .catch(() => toast.error("No se pudo guardar la cita."));
   };
 
-  const handleRegisterPayment = (apt: Appointment) => {
-    setSelectedAppointment(null);
-    setPaymentAppointment(apt);
+  const handleDeleteAppointment = (id: string) => {
+    appointmentsApi
+      .remove(id)
+      .then(() => {
+        setApiAppointments((prev) => prev.filter((a) => a.id !== id));
+        setSelectedAppointment(null);
+        toast.success("Cita eliminada");
+      })
+      .catch(() => toast.error("No se pudo eliminar la cita."));
   };
 
   return (
@@ -212,22 +216,8 @@ export const AgendaPage = () => {
         appointment={selectedAppointment}
         onClose={() => setSelectedAppointment(null)}
         onSave={handleSaveAppointment}
-        onRegisterPayment={handleRegisterPayment}
+        onDelete={handleDeleteAppointment}
       />
-
-      {/* Register Payment Modal */}
-      {paymentAppointment && (
-        <RegisterPaymentModal
-          key={paymentAppointment.id}
-          mode="new"
-          isOpen={paymentAppointment !== null}
-          appointmentId={paymentAppointment.id}
-          patientId={paymentAppointment.patientId ?? ""}
-          treatmentName={paymentAppointment.treatment}
-          onClose={() => setPaymentAppointment(null)}
-          onSuccess={() => setPaymentAppointment(null)}
-        />
-      )}
     </div>
   );
 };

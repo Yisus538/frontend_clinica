@@ -12,6 +12,7 @@ import { NewTreatmentPage } from "../page/NewTreatmentPage";
 import { EditTreatmentPage } from "../page/EditTreatmentPage";
 import { FinancesPage } from "../page/FinancesPage";
 import { SettingsPage } from "../page/SettingsPage";
+import { AppointmentFollowupPage } from "../page/AppointmentFollowupPage";
 import { DashboardLayout } from "../shared/components/layout/DashboardLayout";
 import { ProtectedRoute } from "../shared/components/ProtectedRoute";
 
@@ -35,6 +36,7 @@ export const AppRouter = createBrowserRouter([
           { index: true, element: <DashboardPage /> },
           { path: "agenda", element: <AgendaPage /> },
           { path: "agenda/nueva-cita", element: <NewAppointmentPage /> },
+          { path: "agenda/:id/seguimiento", element: <AppointmentFollowupPage /> },
           { path: "pacientes", element: <PatientsPage /> },
           { path: "pacientes/nuevo", element: <NewPatientPage /> },
           { path: "pacientes/:id", element: <PatientProfilePage /> },

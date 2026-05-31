@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router";
 import { Modal } from "../../../shared/components/Modal";
 import type { Appointment, AppointmentStatus } from "../types/agenda.types";
 import { treatmentsApi, type ApiTreatment } from "../../treatments/api/treatments.api";
@@ -15,26 +16,25 @@ const STATUS_OPTIONS: {
   value: AppointmentStatus;
   icon: string;
   activeClass: string;
+  inactiveHover: string;
 }[] = [
-  {
-    value: "Completada",
-    icon: "task_alt",
-    activeClass: "border-tertiary bg-tertiary/10 text-tertiary",
-  },
   {
     value: "Confirmada",
     icon: "check_circle",
-    activeClass: "border-secondary bg-secondary/10 text-secondary",
+    activeClass: "bg-secondary text-on-secondary border-secondary shadow-sm",
+    inactiveHover: "hover:border-secondary/50 hover:bg-secondary/5 hover:text-secondary",
   },
   {
     value: "Pendiente",
     icon: "pending",
-    activeClass: "border-primary bg-primary/10 text-primary",
+    activeClass: "bg-primary text-on-primary border-primary shadow-sm",
+    inactiveHover: "hover:border-primary/50 hover:bg-primary/5 hover:text-primary",
   },
   {
     value: "Cancelada",
     icon: "cancel",
-    activeClass: "border-error bg-error/10 text-error",
+    activeClass: "bg-error text-on-error border-error shadow-sm",
+    inactiveHover: "hover:border-error/50 hover:bg-error/5 hover:text-error",
   },
 ];
 
@@ -52,8 +52,7 @@ interface AppointmentEditModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (updated: Appointment) => void;
-  onRegisterPayment?: (appointment: Appointment) => void;
-  onSaveAsync?: (updated: Appointment) => Promise<void>;
+  onDelete?: (id: string) => void;
 }
 
 export const AppointmentEditModal = ({
@@ -61,7 +60,7 @@ export const AppointmentEditModal = ({
   isOpen,
   onClose,
   onSave,
-  onRegisterPayment,
+  onDelete,
 }: AppointmentEditModalProps) => {
   const [patient, setPatient] = useState(appointment?.patient ?? "");
   const [selectedTreatmentName, setSelectedTreatmentName] = useState(
@@ -73,8 +72,7 @@ export const AppointmentEditModal = ({
   const [timeRange] = useState(appointment ? formatTimeRange(appointment) : "");
   const [status, setStatus] = useState<AppointmentStatus>(appointment?.status ?? "Pendiente");
   const [treatments, setTreatments] = useState<ApiTreatment[]>([]);
-  const [showPaymentPrompt, setShowPaymentPrompt] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     treatmentsApi
@@ -96,83 +94,89 @@ export const AppointmentEditModal = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const updated: Appointment = {
+    onSave({
       ...appointment,
       patient,
       treatment: selectedTreatmentName || "Consulta",
       status,
       durationMinutes: parseInt(durationMinutes, 10),
-    };
-    if (status === "Completada") {
-      setIsSaving(true);
-      // Call onSave and show prompt on success
-      try {
-        onSave(updated);
-        setShowPaymentPrompt(true);
-      } finally {
-        setIsSaving(false);
-      }
-    } else {
-      onSave(updated);
-    }
+    });
   };
 
-  const footer = showPaymentPrompt ? (
+  const footer = showDeleteConfirm ? (
     <div className="flex flex-col gap-3 p-1">
       <p className="font-body-md text-body-md text-on-surface text-center">
-        ¿Deseás registrar el cobro de esta cita?
+        ¿Estás seguro de que querés eliminar esta cita?
       </p>
       <div className="flex gap-3">
         <button
           type="button"
-          onClick={() => {
-            setShowPaymentPrompt(false);
-            onClose();
-          }}
+          onClick={() => setShowDeleteConfirm(false)}
           className="flex-1 py-2.5 px-4 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
         >
-          No, cerrar
+          No, cancelar
         </button>
-        {onRegisterPayment && (
-          <button
-            type="button"
-            onClick={() => {
-              setShowPaymentPrompt(false);
-              onRegisterPayment({
-                ...appointment,
-                status,
-                treatment: selectedTreatmentName || "Consulta",
-                durationMinutes: parseInt(durationMinutes, 10),
-              });
-              onClose();
-            }}
-            className="flex-1 py-2.5 px-4 bg-secondary text-on-secondary font-label-md text-label-md rounded-lg hover:opacity-90 transition-opacity shadow-sm cursor-pointer flex items-center justify-center gap-2"
-          >
-            <span className="material-symbols-outlined text-[18px]">payments</span>
-            Sí, registrar cobro
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => {
+            onDelete?.(appointment.id);
+            onClose();
+          }}
+          className="flex-1 py-2.5 px-4 bg-error text-on-error font-label-md text-label-md rounded-lg hover:opacity-90 transition-opacity shadow-sm cursor-pointer flex items-center justify-center gap-2"
+        >
+          <span className="material-symbols-outlined text-[18px]">delete</span>
+          Sí, eliminar
+        </button>
       </div>
     </div>
   ) : (
-    <div className="flex flex-col gap-2">
-      <div className="flex gap-3">
+    <div className="flex flex-col gap-2.5">
+      {/* Actions row */}
+      <div className="flex items-center gap-2">
+        {onDelete && (
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-error font-label-md text-label-md hover:bg-error/8 transition-colors cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[16px]">delete</span>
+            Eliminar
+          </button>
+        )}
+        <div className="flex-1" />
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 py-2.5 px-4 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
+          className="px-4 py-2.5 border border-outline-variant text-on-surface font-label-md text-label-md rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
         >
           Cancelar
         </button>
         <button
           form="appointment-edit-form"
           type="submit"
-          disabled={isSaving}
-          className="flex-1 py-2.5 px-4 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm cursor-pointer disabled:opacity-50"
+          className="px-5 py-2.5 bg-primary text-on-primary font-label-md text-label-md rounded-lg hover:opacity-90 transition-opacity shadow-sm cursor-pointer"
         >
-          Guardar Cambios
+          Guardar
         </button>
       </div>
+
+      {/* Divider */}
+      <div className="border-t border-outline-variant" />
+
+      {/* Complete appointment — prominent full-width */}
+      <Link
+        to={`/dashboard/agenda/${appointment.id}/seguimiento`}
+        onClick={onClose}
+        className="w-full py-2.5 rounded-lg bg-secondary text-on-secondary font-label-md text-label-md flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm"
+      >
+        <span
+          className="material-symbols-outlined text-[18px]"
+          style={{ fontVariationSettings: "'FILL' 1" }}
+        >
+          task_alt
+        </span>
+        Completar Cita
+      </Link>
     </div>
   );
 
@@ -301,13 +305,18 @@ export const AppointmentEditModal = ({
                   key={opt.value}
                   type="button"
                   onClick={() => setStatus(opt.value)}
-                  className={`flex-1 py-2 px-3 rounded-lg border-2 font-label-md text-label-md flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                  className={`flex-1 py-2.5 px-3 rounded-lg border-2 font-label-md text-label-md flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                     isActive
                       ? opt.activeClass
-                      : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
+                      : `border-outline-variant text-on-surface-variant bg-surface ${opt.inactiveHover}`
                   }`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">{opt.icon}</span>
+                  <span
+                    className="material-symbols-outlined text-[18px]"
+                    style={isActive ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                  >
+                    {opt.icon}
+                  </span>
                   {opt.value}
                 </button>
               );

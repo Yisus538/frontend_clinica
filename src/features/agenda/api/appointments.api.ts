@@ -106,6 +106,14 @@ export interface AppointmentFilters {
   to?: string;
 }
 
+export interface ApiAppointmentPhoto {
+  id: string;
+  appointmentId: string;
+  photoUrl: string;
+  label: "before" | "after" | "other";
+  createdAt: string;
+}
+
 export const appointmentsApi = {
   findAll: (filters?: AppointmentFilters) => {
     const params = new URLSearchParams();
@@ -124,4 +132,8 @@ export const appointmentsApi = {
   update: (id: string, dto: Partial<CreateAppointmentDto>) =>
     apiClient.patch<ApiAppointment>(`/appointments/${id}`, dto),
   remove: (id: string) => apiClient.delete(`/appointments/${id}`),
+  getPhotos: (id: string) => apiClient.get<ApiAppointmentPhoto[]>(`/appointments/${id}/photos`),
+  uploadPhoto: (id: string, formData: FormData) =>
+    apiClient.upload<ApiAppointmentPhoto>(`/appointments/${id}/photos`, formData),
+  deletePhoto: (photoId: string) => apiClient.delete(`/appointments/photos/${photoId}`),
 };
