@@ -164,6 +164,13 @@ export const AppointmentFollowupPage = () => {
   const [nextTime, setNextTime] = useState("09:00");
   const [nextTreatment, setNextTreatment] = useState("");
 
+  /* ── add treatment inline ── */
+  const [showAddTreatment, setShowAddTreatment] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPrice, setNewPrice] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [isAddingTreatment, setIsAddingTreatment] = useState(false);
+
   /* ── photo upload ── */
   const [uploadingLabel, setUploadingLabel] = useState<string | null>(null);
   const extraPhotoRef = useRef<HTMLInputElement>(null);
@@ -217,6 +224,34 @@ export const AppointmentFollowupPage = () => {
       }
       return next;
     });
+  };
+
+  /* ── add treatment ── */
+  const handleAddTreatment = async () => {
+    if (!newName.trim() || !newPrice) return;
+    setIsAddingTreatment(true);
+    try {
+      const slug = newName.trim().replace(/\s+/g, "_").toUpperCase().slice(0, 8);
+      const code = `${slug}_${Math.floor(100 + Math.random() * 900)}`;
+      const created = await treatmentsApi.create({
+        code,
+        name: newName.trim(),
+        description: newDescription.trim() || undefined,
+        category: "other",
+        basePrice: parseFloat(newPrice),
+      });
+      setTreatments((prev) => [...prev, created]);
+      setSelectedTreatments((prev) => new Set([...prev, created.name]));
+      setNewName("");
+      setNewPrice("");
+      setNewDescription("");
+      setShowAddTreatment(false);
+      toast.success("Tratamiento agregado y seleccionado");
+    } catch {
+      toast.error("No se pudo crear el tratamiento");
+    } finally {
+      setIsAddingTreatment(false);
+    }
   };
 
   /* ── photo upload ── */
@@ -472,11 +507,25 @@ export const AppointmentFollowupPage = () => {
                   </p>
                 </div>
               </div>
-              {selectedTreatments.size > 0 && (
-                <span className="bg-secondary/10 text-secondary px-2.5 py-1 rounded-full font-label-sm text-label-sm border border-secondary/20 shrink-0">
-                  {selectedTreatments.size} seleccionado{selectedTreatments.size !== 1 ? "s" : ""}
-                </span>
-              )}
+              <div className="flex items-center gap-2 shrink-0">
+                {selectedTreatments.size > 0 && (
+                  <span className="bg-secondary/10 text-secondary px-2.5 py-1 rounded-full font-label-sm text-label-sm border border-secondary/20">
+                    {selectedTreatments.size} seleccionado{selectedTreatments.size !== 1 ? "s" : ""}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowAddTreatment((v) => !v)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-label-sm text-label-sm transition-colors cursor-pointer ${
+                    showAddTreatment
+                      ? "bg-secondary/10 text-secondary border border-secondary/30"
+                      : "border border-outline-variant text-on-surface-variant hover:border-secondary/40 hover:text-secondary hover:bg-secondary/5"
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">add</span>
+                  Añadir
+                </button>
+              </div>
             </div>
 
             <div className="p-6">
@@ -545,6 +594,76 @@ export const AppointmentFollowupPage = () => {
                       </label>
                     );
                   })}
+                </div>
+              )}
+
+              {/* Inline add treatment form */}
+              {showAddTreatment && (
+                <div className="mt-3 p-4 border border-dashed border-secondary/40 rounded-xl bg-secondary/3 flex flex-col gap-3">
+                  <p className="font-label-sm text-label-sm text-secondary uppercase tracking-wide">
+                    Nuevo tratamiento
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder="Nombre del tratamiento"
+                      className={`${inputCls} flex-1`}
+                      onKeyDown={(e) => e.key === "Enter" && handleAddTreatment()}
+                    />
+                    <div className="relative w-32 shrink-0">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-sm">
+                        $
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={newPrice}
+                        onChange={(e) => setNewPrice(e.target.value)}
+                        placeholder="Precio"
+                        className={`${inputCls} pl-6`}
+                        onKeyDown={(e) => e.key === "Enter" && handleAddTreatment()}
+                      />
+                    </div>
+                  </div>
+                  <input
+                    type="text"
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    placeholder="Descripción (opcional)"
+                    className={inputCls}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowAddTreatment(false);
+                        setNewName("");
+                        setNewPrice("");
+                        setNewDescription("");
+                      }}
+                      className="px-4 py-2 border border-outline-variant text-on-surface-variant font-label-sm text-label-sm rounded-lg hover:bg-surface-container-low transition-colors cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleAddTreatment}
+                      disabled={isAddingTreatment || !newName.trim() || !newPrice}
+                      className="px-4 py-2 bg-secondary text-on-secondary font-label-sm text-label-sm rounded-lg hover:opacity-90 transition-opacity cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                    >
+                      {isAddingTreatment ? (
+                        <span className="material-symbols-outlined text-[14px] animate-spin">
+                          progress_activity
+                        </span>
+                      ) : (
+                        <span className="material-symbols-outlined text-[14px]">add</span>
+                      )}
+                      Agregar
+                    </button>
+                  </div>
                 </div>
               )}
 
