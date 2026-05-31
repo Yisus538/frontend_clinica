@@ -8,6 +8,12 @@ const STATUS_STYLES: Record<PatientStatus, string> = {
   Inactivo: "bg-tertiary-fixed-dim text-on-tertiary-fixed-variant",
 };
 
+const STATUS_DOT: Record<PatientStatus, string> = {
+  "En Tratamiento": "bg-primary",
+  Activo: "bg-secondary",
+  Inactivo: "bg-outline",
+};
+
 interface PatientDirectoryTableProps {
   patients: PatientRecord[];
 }
@@ -102,8 +108,11 @@ export const PatientDirectoryTable = ({ patients }: PatientDirectoryTableProps) 
                 </td>
                 <td className="py-4 px-6">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[patient.status]}`}
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[patient.status]}`}
                   >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full inline-block ${STATUS_DOT[patient.status]}`}
+                    />
                     {patient.status}
                   </span>
                 </td>
@@ -135,7 +144,7 @@ export const PatientDirectoryTable = ({ patients }: PatientDirectoryTableProps) 
           >
             <span className="material-symbols-outlined">chevron_left</span>
           </button>
-          <button className="w-8 h-8 rounded-md bg-primary-fixed text-primary font-label-sm flex items-center justify-center cursor-pointer">
+          <button className="w-8 h-8 rounded-md bg-primary text-on-primary font-label-sm flex items-center justify-center cursor-pointer">
             1
           </button>
           <button className="w-8 h-8 rounded-md hover:bg-surface text-on-surface-variant font-label-sm flex items-center justify-center transition-colors cursor-pointer">

@@ -1,6 +1,6 @@
 import type { InputProps } from "../types/input.type";
 
-export const Input= ({
+export const Input = ({
   label,
   error,
   rightSlot,
@@ -12,13 +12,20 @@ export const Input= ({
   return (
     <div className="flex flex-col gap-1 w-full max-w-sm">
       {label && (
-        <label htmlFor={id} className="text-sm font-semibold" style={{ color: "var(--color-text-main)" }}>
+        <label
+          htmlFor={id}
+          className="text-sm font-semibold"
+          style={{ color: "var(--color-text-main)" }}
+        >
           {label}
         </label>
       )}
       <div className="relative flex items-center w-full">
         {leftSlot && (
-          <div className="absolute left-3 flex items-center justify-center h-full" style={{ color: "var(--color-text-placeholder)" }}>
+          <div
+            className="absolute left-3 flex items-center justify-center h-full"
+            style={{ color: "var(--color-text-placeholder)" }}
+          >
             {leftSlot}
           </div>
         )}
@@ -32,10 +39,13 @@ export const Input= ({
             fontFamily: "var(--font-base)",
           }}
           className={`
-            w-full border bg-white text-base placeholder:text-(--color-text-placeholder)
+            w-full border bg-surface-container-lowest text-base placeholder:text-(--color-text-placeholder)
             transition-colors focus:outline-none focus:ring-1
-            ${error ? "focus:border-(--color-error) focus:ring-(--color-error)"
-              : "focus:border-(--color-primary) focus:ring-(--color-primary)"}
+            ${
+              error
+                ? "focus:border-(--color-error) focus:ring-(--color-error)"
+                : "focus:border-(--color-primary) focus:ring-(--color-primary)"
+            }
             ${leftSlot ? "pl-12" : "pl-4"}
             ${rightSlot ? "pr-12" : "pr-4"}
             ${className}

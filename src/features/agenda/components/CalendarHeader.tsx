@@ -8,6 +8,7 @@ interface CalendarHeaderProps {
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
+  onRefresh?: () => void;
 }
 
 const VIEW_OPTIONS: { key: ViewMode; label: string }[] = [
@@ -23,6 +24,7 @@ export const CalendarHeader = ({
   onPrev,
   onNext,
   onToday,
+  onRefresh,
 }: CalendarHeaderProps) => (
   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
     {/* Left — Month & Navigation */}
@@ -73,7 +75,19 @@ export const CalendarHeader = ({
         ))}
       </div>
 
-      <Link 
+      {onRefresh && (
+        <button
+          onClick={onRefresh}
+          className="hidden sm:flex items-center justify-center gap-1.5 border border-outline-variant hover:bg-surface-container text-on-surface-variant px-3 py-2.5 rounded-lg font-label-md transition-colors cursor-pointer"
+          aria-label="Actualizar agenda"
+          title="Actualizar"
+        >
+          <span className="material-symbols-outlined text-sm">refresh</span>
+          <span className="text-sm">Actualizar</span>
+        </button>
+      )}
+
+      <Link
         to="/dashboard/agenda/nueva-cita"
         className="hidden sm:flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-on-primary px-5 py-2.5 rounded-lg font-label-md transition-colors shadow-sm whitespace-nowrap cursor-pointer"
       >

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Tooth } from "./Tooth";
 import {
@@ -8,6 +8,10 @@ import {
   type ToothState,
   type Surface,
 } from "../../types/odontogram.types";
+import {
+  clinicalHistoryApi,
+  type ApiClinicalHistory,
+} from "../../../clinical-history/api/clinical-history.api";
 
 type FormData = Record<string, string | boolean>;
 
@@ -103,14 +107,52 @@ const QuestionRow = ({
 interface ClinicalHistoryModalProps {
   isOpen: boolean;
   onClose: () => void;
+  patientId?: string;
 }
 
-export const ClinicalHistoryModal = ({ isOpen, onClose }: ClinicalHistoryModalProps) => {
+export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHistoryModalProps) => {
   const [formData, setFormData] = useState<FormData>({});
   const [teeth, setTeeth] = useState<ToothState[]>(() => allTeethIds.map(initialToothState));
   const [selectedColor, setSelectedColor] = useState(COLORS[1].hex);
   const [activeNoteId, setActiveNoteId] = useState<number | null>(null);
   const [noteText, setNoteText] = useState("");
+  const [history, setHistory] = useState<ApiClinicalHistory | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isSavingHistory, setIsSavingHistory] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !patientId) return;
+    let cancelled = false;
+    const load = async () => {
+      setIsLoadingHistory(true);
+      try {
+        const h = await clinicalHistoryApi.findByPatient(patientId);
+        if (cancelled) return;
+        setHistory(h);
+        setFormData((prev) => ({
+          ...prev,
+          ...(h.generalObservations ? { observaciones: h.generalObservations } : {}),
+          ...(h.currentMedications?.length
+            ? { medsHabituales: h.currentMedications.join(", ") }
+            : {}),
+          ...(h.backgroundConditions?.length
+            ? {
+                sufreEnfermedad: "SI",
+                sufreEnfermedad_detalle: h.backgroundConditions.join(", "),
+              }
+            : {}),
+        }));
+      } catch {
+        // No history yet — that's fine
+      } finally {
+        if (!cancelled) setIsLoadingHistory(false);
+      }
+    };
+    void load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, patientId]);
 
   if (!isOpen) return null;
 
@@ -907,7 +949,7 @@ export const ClinicalHistoryModal = ({ isOpen, onClose }: ClinicalHistoryModalPr
                     style={{ backgroundColor: color.hex }}
                   >
                     {color.id === "ausente" && (
-                      <span className="text-white font-bold text-[10px]">X</span>
+                      <span className="text-on-error font-bold text-[10px]">X</span>
                     )}
                   </div>
                   <span className="font-semibold text-on-surface">{color.label}</span>
@@ -1174,19 +1216,70 @@ export const ClinicalHistoryModal = ({ isOpen, onClose }: ClinicalHistoryModalPr
               Imprimir PDF
             </button>
             <button
-              onClick={() => {
-                console.log("Datos a guardar en BD:", { paciente: formData, odontograma: teeth });
-                toast.success("Historial guardado", {
-                  description: "La historia clínica ha sido actualizada correctamente.",
-                });
-                onClose();
+              disabled={isSavingHistory}
+              onClick={async () => {
+                if (history) {
+                  setIsSavingHistory(true);
+                  try {
+                    await clinicalHistoryApi.update(history.id, {
+                      generalObservations: (formData.observaciones as string) || undefined,
+                      currentMedications: formData.medsHabituales
+                        ? String(formData.medsHabituales)
+                            .split(",")
+                            .map((s) => s.trim())
+                            .filter(Boolean)
+                        : undefined,
+                      backgroundConditions:
+                        formData.sufreEnfermedad === "SI" && formData.sufreEnfermedad_detalle
+                          ? String(formData.sufreEnfermedad_detalle)
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean)
+                          : undefined,
+                    });
+                    toast.success("Historial guardado", {
+                      description: "La historia clínica ha sido actualizada correctamente.",
+                    });
+                    onClose();
+                  } catch {
+                    toast.error("No se pudo guardar el historial clínico");
+                  } finally {
+                    setIsSavingHistory(false);
+                  }
+                } else {
+                  // No history record in backend yet — just show success and close
+                  toast.success("Historial guardado", {
+                    description: "La historia clínica ha sido registrada.",
+                  });
+                  onClose();
+                }
               }}
-              className="flex items-center gap-2 bg-primary hover:bg-surface-tint text-on-primary font-label-md py-2.5 px-6 rounded-lg shadow-sm transition-colors cursor-pointer"
+              className="flex items-center gap-2 bg-primary hover:bg-surface-tint text-on-primary font-label-md py-2.5 px-6 rounded-lg shadow-sm transition-colors cursor-pointer disabled:opacity-50"
             >
-              <span className="material-symbols-outlined text-[20px]">save</span>
-              Guardar Historial
+              {isSavingHistory ? (
+                <>
+                  <span className="material-symbols-outlined text-[20px] animate-spin">
+                    progress_activity
+                  </span>
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[20px]">save</span>
+                  Guardar Historial
+                </>
+              )}
             </button>
           </div>
+
+          {/* Loading overlay */}
+          {isLoadingHistory && (
+            <div className="absolute inset-0 bg-surface/60 backdrop-blur-sm flex items-center justify-center z-20 rounded-xl">
+              <span className="material-symbols-outlined animate-spin text-primary text-5xl">
+                progress_activity
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

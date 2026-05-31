@@ -2,6 +2,12 @@
 import { renderHook, act } from "@testing-library/react";
 import { useForgotPasswordForm } from "../useForgotPasswordForm";
 
+vi.mock("../../api/auth.api", () => ({
+  authApi: {
+    forgotPassword: vi.fn().mockResolvedValue({ message: "ok" }),
+  },
+}));
+
 describe("useForgotPasswordForm", () => {
   it("inicializa con email vacío y sin errores", () => {
     const { result } = renderHook(() => useForgotPasswordForm());

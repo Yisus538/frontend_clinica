@@ -172,7 +172,7 @@ export const TreatmentCatalogTable = ({
           >
             <span className="material-symbols-outlined">chevron_left</span>
           </button>
-          <button className="w-8 h-8 rounded-md bg-primary-fixed text-primary font-label-sm flex items-center justify-center cursor-pointer">
+          <button className="w-8 h-8 rounded-md bg-primary text-on-primary font-label-sm flex items-center justify-center cursor-pointer">
             1
           </button>
           <button className="p-1 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">

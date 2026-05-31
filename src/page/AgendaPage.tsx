@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
 import { CalendarHeader } from "../features/agenda/components/CalendarHeader";
@@ -11,7 +11,8 @@ import {
   REVERSE_STATUS_MAP,
   type ApiAppointment,
 } from "../features/agenda/api/appointments.api";
-import { RegisterPaymentModal } from "../features/finances/components/RegisterPaymentModal";
+import { useAuth } from "../features/auth/context/AuthContext";
+import { useProfile } from "../features/settings/context/ProfileContext";
 import type { Appointment, ViewMode, WeekDay } from "../features/agenda/types/agenda.types";
 
 /* ── Helpers ── */
@@ -41,11 +42,15 @@ function getWeekDays(baseDate: Date): WeekDay[] {
 }
 
 export const AgendaPage = () => {
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [viewMode, setViewMode] = useState<ViewMode>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [apiAppointments, setApiAppointments] = useState<ApiAppointment[]>([]);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
-  const [paymentAppointment, setPaymentAppointment] = useState<Appointment | null>(null);
+
+  const isOdontologo = user?.role === "ODONTOLOGO";
+  const dentistId = profile?.dentistId ?? undefined;
 
   const currentWeekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
@@ -57,12 +62,16 @@ export const AgendaPage = () => {
     return d;
   }, [currentDate]);
 
-  useEffect(() => {
+  const loadAppointments = useCallback(() => {
     appointmentsApi
-      .findAll()
+      .findAll(isOdontologo && dentistId ? { dentistId } : undefined)
       .then(setApiAppointments)
       .catch(() => setApiAppointments([]));
-  }, []);
+  }, [isOdontologo, dentistId]);
+
+  useEffect(() => {
+    loadAppointments();
+  }, [currentDate, loadAppointments]);
 
   const appointments = useMemo(
     () => apiAppointments.map((a) => toAppointment(a, weekStart)),
@@ -149,9 +158,15 @@ export const AgendaPage = () => {
       .catch(() => toast.error("No se pudo guardar la cita."));
   };
 
-  const handleRegisterPayment = (apt: Appointment) => {
-    setSelectedAppointment(null);
-    setPaymentAppointment(apt);
+  const handleDeleteAppointment = (id: string) => {
+    appointmentsApi
+      .remove(id)
+      .then(() => {
+        setApiAppointments((prev) => prev.filter((a) => a.id !== id));
+        setSelectedAppointment(null);
+        toast.success("Cita eliminada");
+      })
+      .catch(() => toast.error("No se pudo eliminar la cita."));
   };
 
   return (
@@ -164,6 +179,7 @@ export const AgendaPage = () => {
         onPrev={handlePrev}
         onNext={handleNext}
         onToday={handleToday}
+        onRefresh={loadAppointments}
       />
 
       {/* Calendar Grid */}
@@ -200,22 +216,8 @@ export const AgendaPage = () => {
         appointment={selectedAppointment}
         onClose={() => setSelectedAppointment(null)}
         onSave={handleSaveAppointment}
-        onRegisterPayment={handleRegisterPayment}
+        onDelete={handleDeleteAppointment}
       />
-
-      {/* Register Payment Modal */}
-      {paymentAppointment && (
-        <RegisterPaymentModal
-          key={paymentAppointment.id}
-          mode="new"
-          isOpen={paymentAppointment !== null}
-          appointmentId={paymentAppointment.id}
-          patientId={paymentAppointment.patientId ?? ""}
-          treatmentName={paymentAppointment.treatment}
-          onClose={() => setPaymentAppointment(null)}
-          onSuccess={() => setPaymentAppointment(null)}
-        />
-      )}
     </div>
   );
 };
