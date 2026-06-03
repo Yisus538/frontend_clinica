@@ -82,8 +82,8 @@ Cada servicio del backend se prueba con su repositorio de TypeORM mockeado media
 | Criterio                                        | Umbral | Estado (26/05)                                                  |
 | ----------------------------------------------- | ------ | --------------------------------------------------------------- |
 | Cobertura de líneas (módulos críticos frontend) | ≥ 60%  | ✅ useForm 95.8%, useForgotPasswordForm 100%, useLoginForm 100% |
-| Cobertura de líneas (backend services)          | ≥ 60%  | ✅ Todos los servicios cubiertos con mocks (81 tests)           |
-| Tests pasando al 100%                           | 100%   | ✅ Frontend 38/38, Backend 81/81                                |
+| Cobertura de líneas (backend services)          | ≥ 60%  | ✅ Todos los servicios cubiertos con mocks (127 tests)          |
+| Tests pasando al 100%                           | 100%   | ✅ Frontend 38/38, Backend 127/127                              |
 | Suites que fallan compilación (backend auth)    | 0      | ✅ 0 suites con errores                                         |
 | Defectos críticos abiertos                      | 0      | ✅ 0 críticos, 0 abiertos (7/7 resueltos)                       |
 
