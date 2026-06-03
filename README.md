@@ -9,12 +9,12 @@ Permite administrar pacientes, citas, tratamientos, historiales clínicos y fina
 
 ## 👥 Equipo
 
-| Nombre | Rol |
-|---|---|
-| Bossio, Francisco | Referente / Líder de grupo |
-| Bulatovich, Juan Cruz | Documentador |
-| Correa, Sofía Agostina | Responsable QA (procesos) |
-| Disandro, Tomás | Responsable QC (testing) |
+| Nombre                 | Rol                        |
+| ---------------------- | -------------------------- |
+| Bossio, Francisco      | Referente / Líder de grupo |
+| Bulatovich, Juan Cruz  | Documentador               |
+| Correa, Sofía Agostina | Responsable QA (procesos)  |
+| Disandro, Tomás        | Responsable QC (testing)   |
 | Martinez, Jesús Manuel | Mantenedor del repositorio |
 
 ---
@@ -30,8 +30,8 @@ Permite administrar pacientes, citas, tratamientos, historiales clínicos y fina
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/Yisus538/ClinicaOdontologica.git
-cd ClinicaOdontologica
+git clone https://github.com/Yisus538/frontend_clinica.git
+cd frontend_clinica
 
 # 2. Instalar dependencias
 npm install
@@ -44,11 +44,11 @@ La aplicación estará disponible en `http://localhost:5173`
 
 ### Scripts disponibles
 
-| Comando | Descripción |
-|---|---|
-| `npm run dev` | Servidor de desarrollo con HMR |
-| `npm run build` | Build de producción |
-| `npm run lint` | Ejecutar ESLint |
+| Comando           | Descripción                     |
+| ----------------- | ------------------------------- |
+| `npm run dev`     | Servidor de desarrollo con HMR  |
+| `npm run build`   | Build de producción             |
+| `npm run lint`    | Ejecutar ESLint                 |
 | `npm run preview` | Preview del build de producción |
 
 ---
@@ -56,21 +56,23 @@ La aplicación estará disponible en `http://localhost:5173`
 ## 🛠️ Stack tecnológico
 
 ### Frontend
-| Tecnología | Versión | Uso |
-|---|---|---|
-| React | 19.x | Biblioteca UI principal |
-| TypeScript | 6.x | Tipado estático |
-| Vite | 8.x | Bundler y dev server |
-| Tailwind CSS | 4.x | Estilos utilitarios |
-| React Router | 7.x | Enrutamiento |
-| Sonner | 2.x | Notificaciones toast |
+
+| Tecnología   | Versión | Uso                     |
+| ------------ | ------- | ----------------------- |
+| React        | 19.x    | Biblioteca UI principal |
+| TypeScript   | 6.x     | Tipado estático         |
+| Vite         | 8.x     | Bundler y dev server    |
+| Tailwind CSS | 4.x     | Estilos utilitarios     |
+| React Router | 7.x     | Enrutamiento            |
+| Sonner       | 2.x     | Notificaciones toast    |
 
 ### Calidad de código
-| Herramienta | Propósito |
-|---|---|
+
+| Herramienta       | Propósito                                     |
+| ----------------- | --------------------------------------------- |
 | ESLint + Prettier | Linter y formatter (config Airbnb-TypeScript) |
-| TypeScript strict | Verificación de tipos en compilación |
-| GitHub Actions | CI: lint + tests en cada PR y push |
+| TypeScript strict | Verificación de tipos en compilación          |
+| GitHub Actions    | CI: lint + tests en cada PR y push            |
 
 ---
 
@@ -114,12 +116,12 @@ src/
 
 ### Naming
 
-| Contexto | Convención | Ejemplo |
-|---|---|---|
-| Variables y funciones | `camelCase` | `handleSubmit` |
-| Clases y componentes | `PascalCase` | `PatientCard` |
-| Constantes de entorno | `SCREAMING_SNAKE_CASE` | `JWT_SECRET` |
-| Rutas y archivos | `kebab-case` | `patient-profile.tsx` |
+| Contexto              | Convención             | Ejemplo               |
+| --------------------- | ---------------------- | --------------------- |
+| Variables y funciones | `camelCase`            | `handleSubmit`        |
+| Clases y componentes  | `PascalCase`           | `PatientCard`         |
+| Constantes de entorno | `SCREAMING_SNAKE_CASE` | `JWT_SECRET`          |
+| Rutas y archivos      | `kebab-case`           | `patient-profile.tsx` |
 
 ### Commits
 
@@ -137,13 +139,13 @@ Tipos: feat | fix | docs | refactor | test | style | chore
 
 ## 📊 Métricas de calidad (Plan SQA)
 
-| Métrica | Umbral | Herramienta |
-|---|---|---|
-| Complejidad ciclomática máx. | ≤ 10 | ESLint rule `complexity` |
-| Maintainability Index mín. | ≥ 65 | Code Climate |
-| Cobertura de tests | ≥ 65% | Vitest `--coverage` |
-| Errores críticos de linter | 0 | ESLint + CI |
-| LOC por función | ≤ 40 | ESLint `max-lines-per-function` |
+| Métrica                      | Umbral | Herramienta                     |
+| ---------------------------- | ------ | ------------------------------- |
+| Complejidad ciclomática máx. | ≤ 10   | ESLint rule `complexity`        |
+| Maintainability Index mín.   | ≥ 65   | Code Climate                    |
+| Cobertura de tests           | ≥ 65%  | Vitest `--coverage`             |
+| Errores críticos de linter   | 0      | ESLint + CI                     |
+| LOC por función              | ≤ 40   | ESLint `max-lines-per-function` |
 
 Métricas medidas y registradas en `docs/metricas.md`.
 
@@ -163,12 +165,12 @@ main ← develop ← feature/REQ-FXX-descripcion
 
 ## 🗓️ Cronograma de hitos
 
-| Fecha | Hito |
-|---|---|
+| Fecha      | Hito                                      |
+| ---------- | ----------------------------------------- |
 | 20/05/2026 | ✅ Hito 3 — Plan SQA + métricas iniciales |
-| 03/06/2026 | Hito 4 — Plan de pruebas |
-| 10/06/2026 | Cobertura ≥ 65% en módulos críticos |
-| 16/06/2026 | Hito 5 — Entrega final |
+| 03/06/2026 | Hito 4 — Plan de pruebas                  |
+| 10/06/2026 | Cobertura ≥ 65% en módulos críticos       |
+| 16/06/2026 | Hito 5 — Entrega final                    |
 
 ---
 
@@ -180,4 +182,4 @@ main ← develop ← feature/REQ-FXX-descripcion
 
 ---
 
-*Ingeniería de Software II · IUA · 2026*
+_Ingeniería de Software II · IUA · 2026_
