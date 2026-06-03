@@ -62,7 +62,7 @@ export const AppointmentEditModal = ({
   onSave,
   onDelete,
 }: AppointmentEditModalProps) => {
-  const [patient, setPatient] = useState(appointment?.patient ?? "");
+  const patient = appointment?.patient ?? "";
   const [selectedTreatmentName, setSelectedTreatmentName] = useState(
     appointment?.treatment !== "Consulta" ? (appointment?.treatment ?? "") : ""
   );
@@ -192,10 +192,9 @@ export const AppointmentEditModal = ({
             </span>
             <input
               type="text"
+              readOnly
               value={patient}
-              onChange={(e) => setPatient(e.target.value)}
-              placeholder="Buscar paciente..."
-              className="w-full pl-10 pr-4 py-3 bg-surface border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg font-body-sm text-body-sm text-on-surface cursor-default"
             />
           </div>
         </div>

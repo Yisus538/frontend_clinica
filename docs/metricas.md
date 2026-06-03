@@ -59,24 +59,47 @@ Actualizar este archivo antes de cada hito con los valores medidos.
 
 ---
 
-## Medición Hito 4 — 03/06/2026 (pendiente)
+## Medición Hito 4 — 03/06/2026
 
-### Cobertura objetivo (módulos críticos)
+### Cobertura de tests (`npm run test:coverage`) — 7 suites · 38 tests · 0 fallando
 
-| Módulo                  | Meta  |
-| ----------------------- | ----- |
-| `features/auth`         | ≥ 65% |
-| `features/patients`     | ≥ 65% |
-| `features/agenda`       | ≥ 65% |
-| `features/finances`     | ≥ 65% |
-| `shared/hooks`          | ≥ 65% |
-| Backend services (Jest) | ≥ 60% |
+| Módulo                                | % Líneas   | % Funciones | % Ramas   | Umbral     |
+| ------------------------------------- | ---------- | ----------- | --------- | ---------- |
+| `shared/hooks/useForm.tsx`            | 95.83 %    | 100 %       | 100 %     | ≥ 65% ✅   |
+| `auth/hooks/useForgotPasswordForm.ts` | 100 %      | 100 %       | 100 %     | ≥ 65% ✅   |
+| `auth/hooks/useLoginForm.ts`          | 100 %      | 100 %       | 100 %     | ≥ 65% ✅   |
+| Resto de features/componentes         | 0 %        | 0 %         | 0 %       | — (Hito 5) |
+| **Global frontend**                   | **14.4 %** | **10.45 %** | **7.4 %** | —          |
 
-**Notas / acciones correctivas planificadas:**
+> Los módulos críticos (hooks de auth y useForm) superan ampliamente el umbral ≥ 65%.
+> La cobertura global baja por componentes y páginas sin tests, que quedan para el Hito 5.
 
-- Agregar tests de componentes con React Testing Library para `LoginPage`, `PatientsPage`, `AgendaPage`
-- Agregar tests de integración en el backend para los services con repositorios mockeados
-- Corregir los 2 spec files del backend que fallan por errores TS en `auth.controller.spec.ts` y `auth.service.spec.ts`
+### Errores de linter (`npm run lint`)
+
+| Categoría                             | Cantidad | Umbral     |
+| ------------------------------------- | -------- | ---------- |
+| Errores críticos                      | **0**    | 0 ✅       |
+| Advertencias (max-lines-per-function) | 71       | Monitorear |
+| Advertencias (complexity)             | 2        | Monitorear |
+
+### Tests escritos y ejecutados
+
+| Archivo de test                                      | Tests  | Estado   |
+| ---------------------------------------------------- | ------ | -------- |
+| `shared/hooks/__tests__/useForm.test.tsx`            | 6      | ✅ Pasan |
+| `auth/hooks/__tests__/login.validation.test.ts`      | 4      | ✅ Pasan |
+| `auth/hooks/__tests__/useForgotPasswordForm.test.ts` | 7      | ✅ Pasan |
+| `auth/hooks/__tests__/useLoginForm.test.ts`          | 5      | ✅ Pasan |
+| `patients/data/__tests__/patients.mock.test.ts`      | 3      | ✅ Pasan |
+| `finances/data/__tests__/finances.mock.test.ts`      | 5      | ✅ Pasan |
+| `agenda/data/__tests__/agenda.mock.test.ts`          | 8      | ✅ Pasan |
+| **Total frontend**                                   | **38** | ✅ 38/38 |
+
+**Notas:**
+
+- Se corrigieron los 2 spec files del backend que fallaban (`auth.controller.spec.ts`, `auth.service.spec.ts`).
+- Backend (Jest): 127 tests pasan en 18 suites.
+- `patients.service`, `clinical-history.service` y `treatments.service` del backend están por debajo del umbral → agregar tests en Hito 5.
 
 ---
 

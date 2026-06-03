@@ -78,6 +78,7 @@ export const NewAppointmentPage = () => {
   const [dentistError, setDentistError] = useState(false);
 
   // ── Form ──────────────────────────────────────────────────────────────────
+  const [isUrgent, setIsUrgent] = useState(false);
   const [form, setForm] = useState({
     scheduledDate: "",
     scheduledTime: "09:00",
@@ -198,7 +199,11 @@ export const NewAppointmentPage = () => {
 
     const errors: FieldErrors = {};
     if (!selectedPatient) errors.patient = "Seleccioná un paciente para continuar.";
-    if (!form.scheduledDate) errors.date = "Elegí una fecha para la cita.";
+    if (!form.scheduledDate) {
+      errors.date = "Elegí una fecha para la cita.";
+    } else if (form.scheduledDate < new Date().toISOString().split("T")[0]) {
+      errors.date = "No se pueden agendar citas en fechas pasadas.";
+    }
     if (!form.scheduledTime) errors.time = "Ingresá la hora de la cita.";
 
     if (Object.keys(errors).length > 0) {
@@ -229,7 +234,10 @@ export const NewAppointmentPage = () => {
         scheduledAt: scheduledAt.toISOString(),
         durationMinutes: parseInt(form.durationMinutes, 10),
         status: "pending",
-        notes: selectedTreatment?.name ?? (form.notes || undefined),
+        isUrgent,
+        notes: selectedTreatment?.name
+          ? [selectedTreatment.name, form.notes].filter(Boolean).join(" — ")
+          : form.notes || undefined,
       });
       toast.success("Cita agendada correctamente.");
       navigate("/dashboard/agenda");
@@ -551,6 +559,7 @@ export const NewAppointmentPage = () => {
                     onChange={handleChange}
                     className={`${fieldErrors.date ? inputError : inputNormal} pl-10 pr-4`}
                     type="date"
+                    min={new Date().toISOString().split("T")[0]}
                   />
                 </div>
                 {fieldErrors.date && (
@@ -607,7 +616,32 @@ export const NewAppointmentPage = () => {
             </div>
           </div>
 
-          {/* ── Section 4: Notas ────────────────────────────────────────── */}
+          {/* ── Section 4: Urgencia ─────────────────────────────────────── */}
+          <div className="mb-6">
+            <button
+              type="button"
+              onClick={() => setIsUrgent((v) => !v)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg border-2 transition-all cursor-pointer w-full md:w-auto ${
+                isUrgent
+                  ? "border-error bg-error/10 text-error"
+                  : "border-outline-variant text-on-surface-variant hover:bg-surface-container-low"
+              }`}
+            >
+              <span className="material-symbols-outlined text-[20px]">
+                {isUrgent ? "priority_high" : "low_priority"}
+              </span>
+              <span className="font-label-md text-label-md">
+                {isUrgent ? "Cita urgente" : "Marcar como urgente"}
+              </span>
+              {isUrgent && (
+                <span className="ml-auto px-2 py-0.5 bg-error text-on-error rounded-full font-caption text-caption">
+                  URGENTE
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* ── Section 5: Notas ────────────────────────────────────────── */}
           <div className="mb-10">
             <label className="block font-label-md text-label-md text-on-surface mb-2">
               Notas / Motivo de consulta
