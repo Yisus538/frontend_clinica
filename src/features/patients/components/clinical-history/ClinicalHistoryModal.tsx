@@ -122,8 +122,11 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
   const [hasUserEdited, setHasUserEdited] = useState(false);
 
   useEffect(() => {
+    if (isOpen) setHasUserEdited(false);
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen || !patientId) return;
-    setHasUserEdited(false);
     let cancelled = false;
     const load = async () => {
       setIsLoadingHistory(true);
