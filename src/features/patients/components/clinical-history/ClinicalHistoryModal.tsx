@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Tooth } from "./Tooth";
 import {
@@ -119,14 +119,11 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
   const [history, setHistory] = useState<ApiClinicalHistory | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isSavingHistory, setIsSavingHistory] = useState(false);
-  const [hasUserEdited, setHasUserEdited] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) setHasUserEdited(false);
-  }, [isOpen]);
+  const hasUserEditedRef = useRef(false);
 
   useEffect(() => {
     if (!isOpen || !patientId) return;
+    hasUserEditedRef.current = false;
     let cancelled = false;
     const load = async () => {
       setIsLoadingHistory(true);
@@ -162,7 +159,7 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
   if (!isOpen) return null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHasUserEdited(true);
+    hasUserEditedRef.current = true;
     const { name, value, type } = e.target;
     if (type === "checkbox") {
       setFormData((prev) => ({ ...prev, [name]: e.target.checked }));
@@ -172,17 +169,17 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setHasUserEdited(true);
+    hasUserEditedRef.current = true;
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const setRadioValue = (name: string, value: string) => {
-    setHasUserEdited(true);
+    hasUserEditedRef.current = true;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const updateSurface = (id: number, surface: Surface) => {
-    setHasUserEdited(true);
+    hasUserEditedRef.current = true;
     setTeeth((prevTeeth) =>
       prevTeeth.map((t) => (t.id === id ? { ...t, [surface]: selectedColor } : t))
     );
@@ -232,7 +229,7 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
           {/* Close button */}
           <button
             onClick={() => {
-              if (hasUserEdited && !window.confirm("Hay cambios sin guardar. ¿Salir igualmente?")) return;
+              if (hasUserEditedRef.current && !window.confirm("Hay cambios sin guardar. ¿Salir igualmente?")) return;
               onClose();
             }}
             className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-high hover:bg-error-container text-on-surface hover:text-error transition-colors z-10 print:hidden cursor-pointer"
