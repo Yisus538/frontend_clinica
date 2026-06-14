@@ -119,9 +119,11 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
   const [history, setHistory] = useState<ApiClinicalHistory | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isSavingHistory, setIsSavingHistory] = useState(false);
+  const [hasUserEdited, setHasUserEdited] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !patientId) return;
+    setHasUserEdited(false);
     let cancelled = false;
     const load = async () => {
       setIsLoadingHistory(true);
@@ -157,6 +159,7 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
   if (!isOpen) return null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHasUserEdited(true);
     const { name, value, type } = e.target;
     if (type === "checkbox") {
       setFormData((prev) => ({ ...prev, [name]: e.target.checked }));
@@ -166,14 +169,17 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setHasUserEdited(true);
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const setRadioValue = (name: string, value: string) => {
+    setHasUserEdited(true);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const updateSurface = (id: number, surface: Surface) => {
+    setHasUserEdited(true);
     setTeeth((prevTeeth) =>
       prevTeeth.map((t) => (t.id === id ? { ...t, [surface]: selectedColor } : t))
     );
@@ -222,7 +228,10 @@ export const ClinicalHistoryModal = ({ isOpen, onClose, patientId }: ClinicalHis
         <div className="max-w-5xl w-full mx-auto bg-surface shadow-2xl rounded-xl print:shadow-none print:w-full pointer-events-auto relative print:m-0 print:rounded-none">
           {/* Close button */}
           <button
-            onClick={onClose}
+            onClick={() => {
+              if (hasUserEdited && !window.confirm("Hay cambios sin guardar. ¿Salir igualmente?")) return;
+              onClose();
+            }}
             className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-high hover:bg-error-container text-on-surface hover:text-error transition-colors z-10 print:hidden cursor-pointer"
           >
             <span className="material-symbols-outlined">close</span>
